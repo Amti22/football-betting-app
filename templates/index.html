@@ -3,106 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Double-Club.com</title>
+    <title>Football Betting System</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 20px;
-            background-color: #f9f9f9;
         }
-
         h1 {
             color: #333;
             text-align: center;
         }
-
         .match-container {
             background-color: white;
-            padding: 20px;
+            padding: 15px;
             margin: 10px 0;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-
         .match-header {
             font-size: 1.5em;
             margin-bottom: 10px;
         }
-
         .match-odds {
             margin: 10px 0;
         }
-
-        .bet-amount-container {
-            margin: 20px 0;
+        .match-odds span {
+            margin-right: 20px;
         }
-
+        .bet-amount-container {
+            margin: 10px 0;
+        }
         .bet-amount-container input {
             padding: 8px;
-            font-size: 1.2em;
-            width: 150px;
-            margin-right: 15px;
+            font-size: 1em;
+            width: 100px;
+            margin-right: 10px;
         }
-
-        .odds-selection {
-            margin-top: 10px;
-        }
-
-        .odds-selection label {
-            margin-right: 15px;
-            font-size: 1.2em;
-        }
-
-        .button-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .button-container a {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #007bff;
+        .bet-amount-container button {
+            padding: 8px 15px;
+            background-color: #28a745;
             color: white;
-            font-size: 1.1em;
-            border-radius: 50px;
-            text-decoration: none;
-            text-align: center;
-            margin-top: 10px;
-            display: none; /* Initially hide the Buy button */
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
-
-        .button-container a:hover {
-            background-color: #0056b3;
+        .bet-amount-container button:hover {
+            background-color: #218838;
         }
-
         .bet-return {
-            margin-top: 20px;
+            margin-top: 10px;
             font-weight: bold;
         }
-
-        /* Styling for the active bet option */
-        .active {
-            background-color: #007bff;
-            color: white;
-        }
-
-        /* Deselect previously selected match */
-        .match-container.selected {
-            border: 2px solid #007bff;
+        .error {
+            color: red;
         }
     </style>
 </head>
 <body>
+    <h1>Welcome to the Football Betting System</h1>
 
-    <h1>Double-Club.com</h1>
-
-    <!-- Matches section -->
     <div id="matches-list"></div>
 
     <script>
-        let selectedMatchId = null;
-
         async function fetchMatches() {
             try {
                 const response = await fetch('/matches');
@@ -129,8 +93,6 @@
             matches.forEach(match => {
                 const matchDiv = document.createElement('div');
                 matchDiv.classList.add('match-container');
-                matchDiv.setAttribute('data-id', match.id);
-                matchDiv.addEventListener('click', () => selectMatch(match.id)); // Event listener for selecting a match
 
                 // Match Header
                 const matchHeader = document.createElement('div');
@@ -146,21 +108,12 @@
                     <span>Away Odds: ${match.away_odds}</span>
                 `;
 
-                // Bet Amount Input, Odds Selection, and Buy Button
+                // Bet Amount Input and Button
                 const betAmountContainer = document.createElement('div');
                 betAmountContainer.classList.add('bet-amount-container');
                 betAmountContainer.innerHTML = `
-                    <input type="number" id="bet-amount-${match.id}" value="0" placeholder="Bet Amount" oninput="calculateReturn(${match.id}, ${match.home_odds}, ${match.draw_odds}, ${match.away_odds})">
-                    <div class="odds-selection">
-                        <button type="button" class="select-odds" data-option="home" onclick="selectOdds(${match.id}, 'home', ${match.home_odds})">Home</button>
-                        <button type="button" class="select-odds" data-option="draw" onclick="selectOdds(${match.id}, 'draw', ${match.draw_odds})">Draw</button>
-                        <button type="button" class="select-odds" data-option="away" onclick="selectOdds(${match.id}, 'away', ${match.away_odds})">Away</button>
-                    </div>
-                    <div class="button-container">
-                        <a href="#" class="button n01" id="buy-btn-${match.id}" style="display: none;" onclick="buyBet(${match.id})">
-                            <span class="label">Buy</span>
-                        </a>
-                    </div>
+                    <input type="number" id="bet-amount-${match.id}" placeholder="Bet Amount" oninput="calculateReturn(${match.id}, ${match.home_odds}, ${match.draw_odds}, ${match.away_odds})">
+                    <button onclick="calculateReturn(${match.id}, ${match.home_odds}, ${match.draw_odds}, ${match.away_odds})">Calculate</button>
                 `;
 
                 // Bet Return
@@ -177,93 +130,28 @@
             });
         }
 
-        function selectMatch(matchId) {
-            if (selectedMatchId) {
-                document.querySelector(`.match-container[data-id="${selectedMatchId}"]`).classList.remove('selected');
-            }
-
-            const matchDiv = document.querySelector(`.match-container[data-id="${matchId}"]`);
-            matchDiv.classList.add('selected');
-            selectedMatchId = matchId;
-            resetMatchSelection();
-        }
-
-        function resetMatchSelection() {
-            const betAmountField = document.getElementById(`bet-amount-${selectedMatchId}`);
-            betAmountField.value = 0;
-            const returnDiv = document.getElementById(`bet-return-${selectedMatchId}`);
-            returnDiv.innerHTML = '';
-            document.querySelectorAll('.select-odds').forEach(button => button.classList.remove('active'));
-            document.getElementById(`buy-btn-${selectedMatchId}`).style.display = 'none';
-        }
-
-        function selectOdds(matchId, option, odds) {
-            if (matchId !== selectedMatchId) return;
-
-            const selectedButton = document.querySelector(`button[data-option="${option}"]`);
-            selectedButton.classList.add('active');
-
-            const betAmountField = document.getElementById(`bet-amount-${matchId}`);
-            const betAmount = parseFloat(betAmountField.value);
-
-            const returnDiv = document.getElementById(`bet-return-${matchId}`);
-            const expectedReturn = betAmount * odds;
-
-            returnDiv.innerHTML = `Expected Return: $${expectedReturn.toFixed(2)}`;
-            document.getElementById(`buy-btn-${matchId}`).style.display = 'inline-block';
-        }
-
         function calculateReturn(matchId, homeOdds, drawOdds, awayOdds) {
-            const betAmountField = document.getElementById(`bet-amount-${matchId}`);
-            let betAmount = parseFloat(betAmountField.value);
-
-            // Automatically change negative bet amounts to $0
-            if (betAmount < 0) {
-                betAmount = 0;
-                betAmountField.value = 0;
-            }
-
-            const selectedOption = document.querySelector(`input[name="bet-option-${matchId}"]:checked`);
+            const betAmount = parseFloat(document.getElementById(`bet-amount-${matchId}`).value);
             const returnDiv = document.getElementById(`bet-return-${matchId}`);
-
             if (isNaN(betAmount) || betAmount <= 0) {
                 returnDiv.innerHTML = 'Please enter a valid bet amount.';
                 return;
             }
 
-            let selectedOdds = 0;
-            if (selectedOption) {
-                if (selectedOption.value === 'home') {
-                    selectedOdds = homeOdds;
-                } else if (selectedOption.value === 'draw') {
-                    selectedOdds = drawOdds;
-                } else if (selectedOption.value === 'away') {
-                    selectedOdds = awayOdds;
-                }
+            // Calculate returns for each option
+            const homeReturn = betAmount * homeOdds;
+            const drawReturn = betAmount * drawOdds;
+            const awayReturn = betAmount * awayOdds;
 
-                const expectedReturn = betAmount * selectedOdds;
-                returnDiv.innerHTML = `Expected Return: $${expectedReturn.toFixed(2)}`;
-            } else {
-                returnDiv.innerHTML = 'Please select a bet option (Home, Draw, or Away).';
-            }
+            returnDiv.innerHTML = `
+                <p>Home Bet Return: $${homeReturn.toFixed(2)}</p>
+                <p>Draw Bet Return: $${drawReturn.toFixed(2)}</p>
+                <p>Away Bet Return: $${awayReturn.toFixed(2)}</p>
+            `;
         }
 
-        function buyBet(matchId) {
-            const betAmount = parseFloat(document.getElementById(`bet-amount-${matchId}`).value);
-            const selectedOption = document.querySelector(`input[name="bet-option-${matchId}"]:checked`);
-
-            if (isNaN(betAmount) || betAmount <= 0 || !selectedOption) {
-                alert('Please enter a valid bet amount and select a bet option.');
-                return;
-            }
-
-            alert(`Bet placed successfully! Match: ${matchId}, Amount: $${betAmount}`);
-            resetMatchSelection();
-        }
-
-        // Fetch the matches when the page loads
+        // Fetch matches on page load
         window.onload = fetchMatches;
     </script>
-
 </body>
 </html>
