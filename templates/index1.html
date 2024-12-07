@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Betting System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .match-container {
+            background-color: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .match-header {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .match-odds {
+            margin: 10px 0;
+        }
+        .match-odds span {
+            margin-right: 20px;
+        }
+        .bet-amount-container {
+            margin: 10px 0;
+        }
+        .bet-amount-container input {
+            padding: 8px;
+            font-size: 1em;
+            width: 100px;
+            margin-right: 10px;
+        }
+        .bet-amount-container button {
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .bet-amount-container button:hover {
+            background-color: #218838;
+        }
+        .bet-return {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Football Betting System</h1>
+
+    <div id="matches-list"></div>
+
+    <script>
+        async function fetchMatches() {
+            try {
+                const response = await fetch('/matches');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const matches = await response.json();
+
+                if (matches.length > 0) {
+                    renderMatches(matches);
+                } else {
+                    document.getElementById('matches-list').innerHTML = '<p>No matches available.</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching matches:', error);
+                document.getElementById('matches-list').innerHTML = '<p class="error">Error fetching matches.</p>';
+            }
+        }
+
+        function renderMatches(matches) {
+            const matchesListDiv = document.getElementById('matches-list');
+            matchesListDiv.innerHTML = '';  // Clear the container before rendering
+
+            matches.forEach(match => {
+                const matchDiv = document.createElement('div');
+                matchDiv.classList.add('match-container');
+
+                // Match Header
+                const matchHeader = document.createElement('div');
+                matchHeader.classList.add('match-header');
+                matchHeader.innerHTML = `${match.home_team} vs ${match.away_team}`;
+
+                // Odds
+                const matchOdds = document.createElement('div');
+                matchOdds.classList.add('match-odds');
+                matchOdds.innerHTML = `
+                    <span>Home Odds: ${match.home_odds}</span>
+                    <span>Draw Odds: ${match.draw_odds}</span>
+                    <span>Away Odds: ${match.away_odds}</span>
+                `;
+
+                // Bet Amount Input and Button
+                const betAmountContainer = document.createElement('div');
+                betAmountContainer.classList.add('bet-amount-container');
+                betAmountContainer.innerHTML = `
+                    <input type="number" id="bet-amount-${match.id}" placeholder="Bet Amount" oninput="calculateReturn(${match.id}, ${match.home_odds}, ${match.draw_odds}, ${match.away_odds})">
+                    <button onclick="calculateReturn(${match.id}, ${match.home_odds}, ${match.draw_odds}, ${match.away_odds})">Calculate</button>
+                `;
+
+                // Bet Return
+                const betReturn = document.createElement('div');
+                betReturn.classList.add('bet-return');
+                betReturn.id = `bet-return-${match.id}`;
+
+                matchDiv.appendChild(matchHeader);
+                matchDiv.appendChild(matchOdds);
+                matchDiv.appendChild(betAmountContainer);
+                matchDiv.appendChild(betReturn);
+
+                matchesListDiv.appendChild(matchDiv);
+            });
+        }
+
+        function calculateReturn(matchId, homeOdds, drawOdds, awayOdds) {
+            const betAmount = parseFloat(document.getElementById(`bet-amount-${matchId}`).value);
+            const returnDiv = document.getElementById(`bet-return-${matchId}`);
+            if (isNaN(betAmount) || betAmount <= 0) {
+                returnDiv.innerHTML = 'Please enter a valid bet amount.';
+                return;
+            }
+
+            // Calculate returns for each option
+            const homeReturn = betAmount * homeOdds;
+            const drawReturn = betAmount * drawOdds;
+            const awayReturn = betAmount * awayOdds;
+
+            returnDiv.innerHTML = `
+                <p>Home Bet Return: $${homeReturn.toFixed(2)}</p>
+                <p>Draw Bet Return: $${drawReturn.toFixed(2)}</p>
+                <p>Away Bet Return: $${awayReturn.toFixed(2)}</p>
+            `;
+        }
+
+        // Fetch matches on page load
+        window.onload = fetchMatches;
+    </script>
+</body>
+</html>

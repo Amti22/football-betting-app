@@ -1,0 +1,6 @@
+Match: Nice vs Le Havre
+Start Date: 2024-12-07T17:00:00+00:00
+Sport: Football
+Home Odds: 1.6
+Draw Odds: 4
+Away Odds: 6.25

@@ -1,0 +1,6 @@
+Match: Real Madrid vs General Lamadrid
+Start Date: 2024-12-07T19:05:00+00:00
+Sport: Football
+Home Odds: 1.95
+Draw Odds: 3.15
+Away Odds: 4.3

@@ -1,0 +1,6 @@
+Match: Girona vs Real Madrid
+Start Date: 2024-12-07T19:00:00+00:00
+Sport: Football
+Home Odds: 4.1
+Draw Odds: 3.8
+Away Odds: 1.95

@@ -1,0 +1,6 @@
+Match: LA Galaxy vs New York
+Start Date: 2024-12-07T20:00:00+00:00
+Sport: Football
+Home Odds: 1.8
+Draw Odds: 3.95
+Away Odds: 4.35
