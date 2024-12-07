@@ -3,154 +3,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Football Betting System</title>
+    <title>Football Betting Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+        :root {
+            --primary-black: #121212;
+            --primary-white: #FFFFFF;
+            --secondary-gray: #666666;
+            --accent-red: #E63946;
+            --accent-blue: #457B9D;
+            --background-gray: #F8F9FA;
+        }
+
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
         }
-        h1 {
-            color: #333;
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-white);
+            color: var(--primary-black);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: sticky;
+            top: 0;
+            background-color: rgba(255,255,255,0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .navbar-links a {
+            text-decoration: none;
+            color: var(--primary-black);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-left: 20px;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .navbar-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary-black);
+            transition: width 0.3s;
+        }
+
+        .navbar-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .section-title {
             text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            letter-spacing: -1px;
         }
+
+        /* Match Container */
         .match-container {
-            background-color: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: var(--primary-white);
+            border: 1px solid #E0E0E0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+
+        .match-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+
         .match-header {
-            font-size: 1.5em;
-            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: 600;
         }
-        .match-odds {
-            margin: 10px 0;
+
+        .match-header span {
+            font-size: 1.2rem;
         }
-        .match-odds span {
-            margin-right: 20px;
+
+        .odds-display {
+            color: var(--secondary-gray);
+            margin-bottom: 15px;
         }
-        .bet-amount-container {
-            margin: 10px 0;
+
+        .bet-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
-        .bet-amount-container input {
-            padding: 8px;
-            font-size: 1em;
-            width: 100px;
-            margin-right: 10px;
+
+        .bet-amount {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #E0E0E0;
+            border-radius: 6px;
+            font-size: 1rem;
         }
-        .bet-amount-container button {
-            padding: 8px 15px;
-            background-color: #28a745;
-            color: white;
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .button-group button {
+            background-color: var(--primary-white);
+            color: var(--primary-black);
+            border: 2px solid var(--primary-black);
+            border-radius: 6px;
+            padding: 12px 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .button-group button:hover {
+            background-color: var(--primary-black);
+            color: var(--primary-white);
+        }
+
+        .button-group button.active {
+            background-color: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: var(--primary-white);
+        }
+
+        .return-display {
+            text-align: right;
+            font-weight: 600;
+            color: var(--accent-red);
+            margin-top: 15px;
+        }
+
+        .buy-button {
+            width: 100%;
+            background-color: var(--primary-black);
+            color: var(--primary-white);
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
             cursor: pointer;
         }
-        .bet-amount-container button:hover {
-            background-color: #218838;
+
+        .buy-button:hover {
+            background-color: var(--accent-red);
         }
-        .bet-return {
-            margin-top: 10px;
-            font-weight: bold;
+
+        /* Footer */
+        .footer {
+            background-color: var(--primary-black);
+            color: var(--primary-white);
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
         }
-        .error {
-            color: red;
+
+        .footer p {
+            font-size: 0.8rem;
+            color: #CCCCCC;
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+                align-items: center;
+            }
+            .navbar-links {
+                margin-top: 10px;
+            }
+            .button-group {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to the Football Betting System</h1>
+    <nav class="navbar">
+        <div class="navbar-brand">FOOTBALL BETTING</div>
+        <div class="navbar-links">
+            <a href="#">Matches</a>
+            <a href="#">Odds</a>
+            <a href="#">Account</a>
+        </div>
+    </nav>
 
-    <div id="matches-list"></div>
+    <div class="container">
+        <h1 class="section-title">Today's Matches</h1>
+        <div id="matches-list"></div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Football Betting Platform. All Rights Reserved.</p>
+    </footer>
 
     <script>
+        // Reusing the previous JavaScript with minor modifications
         async function fetchMatches() {
             try {
                 const response = await fetch('/matches');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const matches = await response.json();
+                if (!response.ok) throw new Error('Error fetching matches');
 
+                const matches = await response.json();
                 if (matches.length > 0) {
                     renderMatches(matches);
                 } else {
-                    document.getElementById('matches-list').innerHTML = '<p>No matches available.</p>';
+                    document.getElementById('matches-list').innerHTML = '<p>No matches available</p>';
                 }
             } catch (error) {
-                console.error('Error fetching matches:', error);
-                document.getElementById('matches-list').innerHTML = '<p class="error">Error fetching matches.</p>';
+                console.error(error);
+                document.getElementById('matches-list').innerHTML = '<p>Failed to load matches</p>';
             }
         }
 
         function renderMatches(matches) {
-            const matchesListDiv = document.getElementById('matches-list');
-            matchesListDiv.innerHTML = '';  // Clear the container before rendering
+            const matchesList = document.getElementById('matches-list');
+            matchesList.innerHTML = '';
 
             matches.forEach(match => {
                 const matchDiv = document.createElement('div');
                 matchDiv.classList.add('match-container');
+                matchDiv.setAttribute('data-id', match.id);
 
-                // Match Header
-                const matchHeader = document.createElement('div');
-                matchHeader.classList.add('match-header');
-                matchHeader.innerHTML = `${match.home_team} vs ${match.away_team}`;
-
-                // Odds
-                const matchOdds = document.createElement('div');
-                matchOdds.classList.add('match-odds');
-                matchOdds.innerHTML = `
-                    <span>Home Odds: ${match.home_odds}</span>
-                    <span>Draw Odds: ${match.draw_odds}</span>
-                    <span>Away Odds: ${match.away_odds}</span>
+                matchDiv.innerHTML = `
+                    <div class="match-header">
+                        <span>${match.home_team}</span>
+                        <span>VS</span>
+                        <span>${match.away_team}</span>
+                    </div>
+                    <div class="odds-display">
+                        <strong>Odds:</strong> Home: ${match.home_odds}, Draw: ${match.draw_odds}, Away: ${match.away_odds}
+                    </div>
+                    <div class="bet-container">
+                        <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1">
+                        <div class="button-group">
+                            <button class="home-btn">Home</button>
+                            <button class="draw-btn">Draw</button>
+                            <button class="away-btn">Away</button>
+                        </div>
+                    </div>
+                    <div class="return-display">Expected Return: $0</div>
+                    <button class="buy-button" style="display: none;">Place Bet</button>
                 `;
 
-                // Bet Amount Input and Button
-                const betAmountContainer = document.createElement('div');
-                betAmountContainer.classList.add('bet-amount-container');
-                betAmountContainer.innerHTML = `
-                    <input type="number" id="bet-amount-${match.id}" placeholder="Bet Amount" oninput="calculateReturn(${match.id}, ${match.home_odds}, ${match.draw_odds}, ${match.away_odds})">
-                    <button onclick="calculateReturn(${match.id}, ${match.home_odds}, ${match.draw_odds}, ${match.away_odds})">Calculate</button>
-                `;
-
-                // Bet Return
-                const betReturn = document.createElement('div');
-                betReturn.classList.add('bet-return');
-                betReturn.id = `bet-return-${match.id}`;
-
-                matchDiv.appendChild(matchHeader);
-                matchDiv.appendChild(matchOdds);
-                matchDiv.appendChild(betAmountContainer);
-                matchDiv.appendChild(betReturn);
-
-                matchesListDiv.appendChild(matchDiv);
+                matchesList.appendChild(matchDiv);
+                attachListeners(matchDiv, match);
             });
         }
 
-        function calculateReturn(matchId, homeOdds, drawOdds, awayOdds) {
-            const betAmount = parseFloat(document.getElementById(`bet-amount-${matchId}`).value);
-            const returnDiv = document.getElementById(`bet-return-${matchId}`);
-            if (isNaN(betAmount) || betAmount <= 0) {
-                returnDiv.innerHTML = 'Please enter a valid bet amount.';
-                return;
+        function attachListeners(matchDiv, match) {
+            const betInput = matchDiv.querySelector('.bet-amount');
+            const returnDisplay = matchDiv.querySelector('.return-display');
+            const buyButton = matchDiv.querySelector('.buy-button');
+            const buttons = matchDiv.querySelectorAll('.button-group button');
+
+            let selectedOption = null;
+            let selectedOdds = null;
+
+            betInput.addEventListener('input', updateReturnDisplay);
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    if (button.classList.contains('home-btn')) {
+                        selectedOption = 'home';
+                        selectedOdds = match.home_odds;
+                    } else if (button.classList.contains('draw-btn')) {
+                        selectedOption = 'draw';
+                        selectedOdds = match.draw_odds;
+                    } else if (button.classList.contains('away-btn')) {
+                        selectedOption = 'away';
+                        selectedOdds = match.away_odds;
+                    }
+
+                    updateReturnDisplay();
+                });
+            });
+
+            buyButton.addEventListener('click', () => {
+                if (!selectedOption || !selectedOdds) {
+                    alert('Please select an option before buying.');
+                    return;
+                }
+
+                const betAmount = parseFloat(betInput.value) || 0;
+                if (betAmount <= 0) {
+                    alert('Please enter a valid bet amount.');
+                    return;
+                }
+
+                alert(`Bet placed on ${selectedOption} at odds ${selectedOdds} with $${betAmount}`);
+            });
+
+            function updateReturnDisplay() {
+                const betAmount = parseFloat(betInput.value) || 0;
+                if (selectedOdds && betAmount > 0) {
+                    const expectedReturn = (betAmount * selectedOdds).toFixed(2);
+                    returnDisplay.textContent = `Expected Return: $${expectedReturn}`;
+                    buyButton.style.display = 'inline-block';
+                } else {
+                    returnDisplay.textContent = 'Expected Return: $0';
+                    buyButton.style.display = 'none';
+                }
             }
-
-            // Calculate returns for each option
-            const homeReturn = betAmount * homeOdds;
-            const drawReturn = betAmount * drawOdds;
-            const awayReturn = betAmount * awayOdds;
-
-            returnDiv.innerHTML = `
-                <p>Home Bet Return: $${homeReturn.toFixed(2)}</p>
-                <p>Draw Bet Return: $${drawReturn.toFixed(2)}</p>
-                <p>Away Bet Return: $${awayReturn.toFixed(2)}</p>
-            `;
         }
 
-        // Fetch matches on page load
         window.onload = fetchMatches;
     </script>
 </body>
