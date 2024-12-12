@@ -6,13 +6,29 @@
     <title>Football Betting Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+        .sport-dropdown {
+            padding: 10px;
+            font-size: 1rem;
+            background-color: #3E4352;
+            color: #FFFFFF96;
+            border: none;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+
         :root {
-            --primary-black: #121212;
+            --primary-black: #FFFFFF96;
             --primary-white: #FFFFFF;
-            --secondary-gray: #666666;
+            --secondary-gray: #FFFFFF96;
             --accent-red: #E63946;
             --accent-blue: #457B9D;
             --background-gray: #F8F9FA;
+            --Content1: #FFFFFF96;
+            --Headling2:#FF7A7A;
+            --Overline: #9892E0;
+            --Button-label: ##FFFFFF96;
         }
 
         * {
@@ -24,8 +40,8 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--primary-white);
-            color: var(--primary-black);
+            background-color: transparent;
+            color: #FFFFFF96;
             line-height: 1.6;
         }
 
@@ -50,7 +66,7 @@
 
         .navbar-links a {
             text-decoration: none;
-            color: var(--primary-black);
+            color: #FFFFFF96;
             text-transform: uppercase;
             font-weight: 600;
             margin-left: 20px;
@@ -65,7 +81,7 @@
             height: 2px;
             bottom: -5px;
             left: 0;
-            background-color: var(--primary-black);
+            background-color: #FFFFFF96;
             transition: width 0.3s;
         }
 
@@ -90,8 +106,8 @@
 
         /* Match Container */
         .match-container {
-            background-color: var(--primary-white);
-            border: 1px solid #E0E0E0;
+            background-color: #2F3340;
+            border: 1px solid #3E4352;
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
@@ -112,6 +128,16 @@
             font-weight: 600;
         }
 
+        .match-header-time {
+            display: flex;
+            text-align: center;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+
         .match-header span {
             font-size: 1.2rem;
         }
@@ -130,7 +156,7 @@
         .bet-amount {
             width: 100%;
             padding: 12px;
-            border: 1px solid #E0E0E0;
+            border: 1px solid #3E4352;
             border-radius: 6px;
             font-size: 1rem;
         }
@@ -142,45 +168,52 @@
         }
 
         .button-group button {
-            background-color: var(--primary-white);
-            color: var(--primary-black);
-            border: 2px solid var(--primary-black);
+            background-color: #3E4352;
+            color: var(--Button-label);
+            border: 2px solid #3E4352;
             border-radius: 6px;
             padding: 12px 15px;
             font-weight: 600;
-            text-transform: uppercase;
             cursor: pointer;
             font-size: 0.9rem;
         }
 
         .button-group button:hover {
             background-color: var(--primary-black);
-            color: var(--primary-white);
+            color: var(--Button-label);
         }
 
         .button-group button.active {
             background-color: var(--accent-blue);
             border-color: var(--accent-blue);
-            color: var(--primary-white);
+            color: var(--Button-label);
         }
 
         .return-display {
-            text-align: right;
+            text-align: right;  /* Keep expected return on the right */
             font-weight: 600;
-            color: var(--accent-red);
+            color: #FFFFFF96;
             margin-top: 15px;
+            display: block;  /* Ensure it's displayed */
+        }
+
+        .membership-return {
+            text-align: right;  /* Align to the right side */
+            font-weight: 600;
+            color: var(--Overline);
+            margin-top: 15px;
+            display: block;  /* Make sure it's always visible */
         }
 
         .buy-button {
             width: 100%;
-            background-color: var(--primary-black);
-            color: var(--primary-white);
+            background-color: #3E4352;
+            color: var(--Button-label);
             border: none;
             border-radius: 6px;
             padding: 15px;
             margin-top: 15px;
             font-weight: 700;
-            text-transform: uppercase;
             cursor: pointer;
         }
 
@@ -191,7 +224,7 @@
         /* Footer */
         .footer {
             background-color: var(--primary-black);
-            color: var(--primary-white);
+            color: #FFFFFF96;
             text-align: center;
             padding: 20px;
             margin-top: 40px;
@@ -216,139 +249,183 @@
         }
     </style>
 </head>
+
 <body>
-    <nav class="navbar">
-        <div class="navbar-brand">FOOTBALL BETTING</div>
-        <div class="navbar-links">
-            <a href="#">Matches</a>
-            <a href="#">Odds</a>
-            <a href="#">Account</a>
-        </div>
-    </nav>
 
-    <div class="container">
-        <h1 class="section-title">Today's Matches</h1>
-        <div id="matches-list"></div>
-    </div>
+<select id="sport-filter" class="sport-dropdown">
+    <option value="">Select Sport</option>
+</select>
 
-    <footer class="footer">
-        <p>&copy; 2024 Football Betting Platform. All Rights Reserved.</p>
-    </footer>
+<div class="container">
+    <h1 class="section-title"></h1>
+    <div id="matches-list"></div>
+</div>
 
-    <script>
-        // Reusing the previous JavaScript with minor modifications
-        async function fetchMatches() {
-            try {
-                const response = await fetch('/matches');
-                if (!response.ok) throw new Error('Error fetching matches');
 
-                const matches = await response.json();
-                if (matches.length > 0) {
-                    renderMatches(matches);
-                } else {
-                    document.getElementById('matches-list').innerHTML = '<p>No matches available</p>';
+<script>
+    async function fetchSports() {
+        try {
+            const response = await fetch('/sports');  // Ensure your server has this endpoint
+            if (!response.ok) throw new Error('Error fetching sports');
+
+            const sports = await response.json();
+            const sportFilter = document.getElementById('sport-filter');
+
+            sports.forEach(sport => {
+                const option = document.createElement('option');
+                option.value = sport;
+                option.textContent = sport.charAt(0).toUpperCase() + sport.slice(1);
+                sportFilter.appendChild(option);
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function fetchMatches() {
+        const sport = document.getElementById('sport-filter').value;
+        const url = sport ? `/matches?sport=${sport}` : '/matches';
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Error fetching matches');
+
+            const matches = await response.json();
+            if (matches.length > 0) {
+                renderMatches(matches);
+            } else {
+                document.getElementById('matches-list').innerHTML = '<p>No matches available</p>';
+            }
+        } catch (error) {
+            console.error(error);
+            document.getElementById('matches-list').innerHTML = '<p>Failed to load matches</p>';
+        }
+    }
+
+    function renderMatches(matches) {
+        const matchesList = document.getElementById('matches-list');
+        matchesList.innerHTML = '';
+
+        matches.forEach(match => {
+            const matchDiv = document.createElement('div');
+            matchDiv.classList.add('match-container');
+            matchDiv.setAttribute('data-id', match.id);
+
+            matchDiv.innerHTML = `
+                <div class="match-header-time">
+                    <span>${match.formatted_date}</span>
+                </div>
+                <div class="match-header">
+                    <span>${match.home_team}</span>
+                    <span>VS</span>
+                    <span>${match.away_team}</span>
+                </div>
+                <div class="odds-display" style="text-align: center;">
+                    <strong></strong> Home: ${match.home_odds}, Draw: ${match.draw_odds}, Away: ${match.away_odds}
+                </div>
+                <div class="bet-container">
+                    <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1">
+                    <div class="button-group">
+                        <button class="home-btn">Home</button>
+                        <button class="draw-btn">Draw</button>
+                        <button class="away-btn">Away</button>
+                    </div>
+                </div>
+                <div class="return-display">Expected Return: $0</div>
+                <div class="membership-return">Double-Club Membership Return: $0</div>
+                <button class="buy-button" style="display: none;">Place Bet</button>
+            `;
+
+            matchesList.appendChild(matchDiv);
+            attachListeners(matchDiv, match);
+        });
+    }
+
+    function attachListeners(matchDiv, match) {
+        const betInput = matchDiv.querySelector('.bet-amount');
+        const returnDisplay = matchDiv.querySelector('.return-display');
+        const membershipReturnDisplay = matchDiv.querySelector('.membership-return');
+        const buyButton = matchDiv.querySelector('.buy-button');
+        const buttons = matchDiv.querySelectorAll('.button-group button');
+
+        let selectedOption = null;
+        let selectedOdds = null;
+
+        betInput.addEventListener('input', updateReturnDisplay);
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                buttons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                if (button.classList.contains('home-btn')) {
+                    selectedOption = 'home';
+                    selectedOdds = match.home_odds;
+                } else if (button.classList.contains('draw-btn')) {
+                    selectedOption = 'draw';
+                    selectedOdds = match.draw_odds;
+                } else if (button.classList.contains('away-btn')) {
+                    selectedOption = 'away';
+                    selectedOdds = match.away_odds;
                 }
-            } catch (error) {
-                console.error(error);
-                document.getElementById('matches-list').innerHTML = '<p>Failed to load matches</p>';
+
+                updateReturnDisplay();
+            });
+        });
+
+        buyButton.addEventListener('click', () => {
+            if (!selectedOption || !selectedOdds) {
+                alert('Please select an option before buying.');
+                return;
+            }
+
+            const betAmountUSD = parseFloat(betInput.value) || 0;
+            if (betAmountUSD <= 0) {
+                alert('Please enter a valid bet amount.');
+                return;
+            }
+
+            const matchDate = match.formatted_date;
+            const homeTeam = match.home_team;
+            const awayTeam = match.away_team;
+
+            const exchangeRate = 0.80;
+            const betAmountGBP = (betAmountUSD * exchangeRate).toFixed(2);
+
+            const confirmMessage = `Bet placed on ${selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)} at odds ${selectedOdds} with $${betAmountUSD} (approx. £${betAmountGBP} GBP).\n\nMatch: ${homeTeam} vs ${awayTeam}\nDate: ${matchDate}\n\nClick OK to proceed to payment.`;
+
+            if (confirm(confirmMessage)) {
+                const paypalLink = `https://www.paypal.com/paypalme/DoubleClubChannel/${betAmountUSD.toFixed(2)}?currency_code=USD`;
+                window.open(paypalLink, '_blank');
+            } else {
+                alert("Payment canceled.");
+            }
+        });
+
+        function updateReturnDisplay() {
+            const betAmount = parseFloat(betInput.value) || 0;
+            if (selectedOdds && betAmount > 0) {
+                const expectedReturn = (betAmount * selectedOdds).toFixed(2);
+                const membershipReturn = (betAmount * selectedOdds * 2).toFixed(2);
+
+                returnDisplay.textContent = `Expected Return: $${expectedReturn}`;
+                membershipReturnDisplay.textContent = `Double-Club Membership Return: $${membershipReturn}`;
+
+                membershipReturnDisplay.style.display = 'block';
+                buyButton.style.display = 'inline-block';
+            } else {
+                returnDisplay.textContent = 'Expected Return: $0';
+                membershipReturnDisplay.style.display = 'block';
+                buyButton.style.display = 'none';
             }
         }
+    }
 
-        function renderMatches(matches) {
-            const matchesList = document.getElementById('matches-list');
-            matchesList.innerHTML = '';
-
-            matches.forEach(match => {
-                const matchDiv = document.createElement('div');
-                matchDiv.classList.add('match-container');
-                matchDiv.setAttribute('data-id', match.id);
-
-                matchDiv.innerHTML = `
-                    <div class="match-header">
-                        <span>${match.home_team}</span>
-                        <span>VS</span>
-                        <span>${match.away_team}</span>
-                    </div>
-                    <div class="odds-display">
-                        <strong>Odds:</strong> Home: ${match.home_odds}, Draw: ${match.draw_odds}, Away: ${match.away_odds}
-                    </div>
-                    <div class="bet-container">
-                        <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1">
-                        <div class="button-group">
-                            <button class="home-btn">Home</button>
-                            <button class="draw-btn">Draw</button>
-                            <button class="away-btn">Away</button>
-                        </div>
-                    </div>
-                    <div class="return-display">Expected Return: $0</div>
-                    <button class="buy-button" style="display: none;">Place Bet</button>
-                `;
-
-                matchesList.appendChild(matchDiv);
-                attachListeners(matchDiv, match);
-            });
-        }
-
-        function attachListeners(matchDiv, match) {
-            const betInput = matchDiv.querySelector('.bet-amount');
-            const returnDisplay = matchDiv.querySelector('.return-display');
-            const buyButton = matchDiv.querySelector('.buy-button');
-            const buttons = matchDiv.querySelectorAll('.button-group button');
-
-            let selectedOption = null;
-            let selectedOdds = null;
-
-            betInput.addEventListener('input', updateReturnDisplay);
-
-            buttons.forEach(button => {
-                button.addEventListener('click', () => {
-                    buttons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-
-                    if (button.classList.contains('home-btn')) {
-                        selectedOption = 'home';
-                        selectedOdds = match.home_odds;
-                    } else if (button.classList.contains('draw-btn')) {
-                        selectedOption = 'draw';
-                        selectedOdds = match.draw_odds;
-                    } else if (button.classList.contains('away-btn')) {
-                        selectedOption = 'away';
-                        selectedOdds = match.away_odds;
-                    }
-
-                    updateReturnDisplay();
-                });
-            });
-
-            buyButton.addEventListener('click', () => {
-                if (!selectedOption || !selectedOdds) {
-                    alert('Please select an option before buying.');
-                    return;
-                }
-
-                const betAmount = parseFloat(betInput.value) || 0;
-                if (betAmount <= 0) {
-                    alert('Please enter a valid bet amount.');
-                    return;
-                }
-
-                alert(`Bet placed on ${selectedOption} at odds ${selectedOdds} with $${betAmount}`);
-            });
-
-            function updateReturnDisplay() {
-                const betAmount = parseFloat(betInput.value) || 0;
-                if (selectedOdds && betAmount > 0) {
-                    const expectedReturn = (betAmount * selectedOdds).toFixed(2);
-                    returnDisplay.textContent = `Expected Return: $${expectedReturn}`;
-                    buyButton.style.display = 'inline-block';
-                } else {
-                    returnDisplay.textContent = 'Expected Return: $0';
-                    buyButton.style.display = 'none';
-                }
-            }
-        }
-
-        window.onload = fetchMatches;
-    </script>
+    window.onload = () => {
+        fetchSports();
+        fetchMatches(); // Initially load all matches
+        document.getElementById('sport-filter').addEventListener('change', fetchMatches); // Update matches on filter change
+    };
+</script>
 </body>
 </html>
