@@ -18,6 +18,7 @@
         }
 
 
+
         :root {
             --primary-black: #FFFFFF96;
             --primary-white: #FFFFFF;
@@ -165,7 +166,33 @@
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+
+
         }
+
+        .button-group .bts-yes-btn {
+            order: 1; /* Ensure "No" stays on the right */
+        }
+        .button-group .bts-no-btn {
+            order: 3; /* Ensure "No" stays on the right */
+        }
+
+        .button-group .bts-hidden-btn {
+            order: 2; /* Ensure "No" stays on the right */
+            visibility: hidden;
+        }
+
+        .button-group .dnb-1-btn {
+            order: 1; /* Ensure "1" stays on the right */
+        }
+        .button-group .dnb-2-btn {
+            order: 3; /* Ensure "2" stays on the right */
+        }
+
+
+
 
         .button-group button {
             background-color: #3E4352;
@@ -265,7 +292,7 @@
 <script>
     async function fetchSports() {
         try {
-            const response = await fetch('/sports');  // Ensure your server has this endpoint
+            const response = await fetch('/sports');
             if (!response.ok) throw new Error('Error fetching sports');
 
             const sports = await response.json();
@@ -279,6 +306,7 @@
             });
         } catch (error) {
             console.error(error);
+            alert('Could not load sports at this time. Please try again later.');
         }
     }
 
@@ -298,75 +326,166 @@
             }
         } catch (error) {
             console.error(error);
-            document.getElementById('matches-list').innerHTML = '<p>Failed to load matches</p>';
+            document.getElementById('matches-list').innerHTML = '<p>Failed to load matches. Please try again later.</p>';
         }
     }
 
     function renderMatches(matches) {
-        const matchesList = document.getElementById('matches-list');
-        matchesList.innerHTML = '';
+    const matchesList = document.getElementById('matches-list');
+    matchesList.innerHTML = '';
 
-        matches.forEach(match => {
-            const matchDiv = document.createElement('div');
-            matchDiv.classList.add('match-container');
-            matchDiv.setAttribute('data-id', match.id);
+    matches.forEach(match => {
+        const matchDiv = document.createElement('div');
+        matchDiv.classList.add('match-container');
+        matchDiv.setAttribute('data-id', match.id);
 
-            matchDiv.innerHTML = `
-                <div class="match-header-time">
-                    <span>${match.formatted_date}</span>
+        matchDiv.innerHTML = `
+            <div class="match-header-time">
+                <span>${match.formatted_date}</span>
+            </div>
+            <div class="match-header">
+                <span>${match.home_team}</span>
+                <span>VS</span>
+                <span>${match.away_team}</span>
+            </div>
+            <div class="odds-display" style="text-align: center;">
+                <strong></strong> Home: ${match.odds.home_odds}, Draw: ${match.odds.draw_odds}, Away: ${match.odds.away_odds}
+            </div>
+            <div class="bet-container">
+                <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1">
+                <div class="button-group">
+                    <button class="home-btn">Home</button>
+                    <button class="draw-btn">Draw</button>
+                    <button class="away-btn">Away</button>
                 </div>
-                <div class="match-header">
-                    <span>${match.home_team}</span>
-                    <span>VS</span>
-                    <span>${match.away_team}</span>
-                </div>
-                <div class="odds-display" style="text-align: center;">
-                    <strong></strong> Home: ${match.home_odds}, Draw: ${match.draw_odds}, Away: ${match.away_odds}
-                </div>
-                <div class="bet-container">
-                    <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1">
-                    <div class="button-group">
-                        <button class="home-btn">Home</button>
-                        <button class="draw-btn">Draw</button>
-                        <button class="away-btn">Away</button>
-                    </div>
-                </div>
-                <div class="return-display">Expected Return: $0</div>
-                <div class="membership-return">Double-Club Membership Return: $0</div>
-                <button class="buy-button" style="display: none;">Place Bet</button>
-            `;
+                <!-- Betting Option Dropdown -->
+                <select class="bet-option-dropdown">
+                    <option value="1X2" selected>1X2</option>  <!-- Default selected -->
+                    <option value="BTS">BTS</option>
+                    <option value="DNB">DNB</option>
+                    <option value="DC">DC</option>
+                    <option value="OU">OU</option>
+                </select>
+            </div>
+            <div class="return-display">Expected Return: $0</div>
+            <div class="membership-return">Double-Club Membership Return: $0</div>
+            <button class="buy-button" style="display: none;">Place Bet</button>
+        `;
 
-            matchesList.appendChild(matchDiv);
-            attachListeners(matchDiv, match);
-        });
-    }
+        matchesList.appendChild(matchDiv);
+        attachListeners(matchDiv, match);
+    });
+}
+
 
     function attachListeners(matchDiv, match) {
         const betInput = matchDiv.querySelector('.bet-amount');
         const returnDisplay = matchDiv.querySelector('.return-display');
         const membershipReturnDisplay = matchDiv.querySelector('.membership-return');
         const buyButton = matchDiv.querySelector('.buy-button');
-        const buttons = matchDiv.querySelectorAll('.button-group button');
+        const betOptionDropdown = matchDiv.querySelector('.bet-option-dropdown');
 
         let selectedOption = null;
         let selectedOdds = null;
 
         betInput.addEventListener('input', updateReturnDisplay);
+        betOptionDropdown.addEventListener('change', handleBetOptionChange);
 
-        buttons.forEach(button => {
+        // Handle Yes/No buttons for BTS
+        matchDiv.querySelectorAll('.bts-yes-btn, .bts-no-btn').forEach(button => {
             button.addEventListener('click', () => {
-                buttons.forEach(btn => btn.classList.remove('active'));
+                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                if (button.classList.contains('bts-yes-btn')) {
+                    selectedOption = 'yes';
+                    selectedOdds = match.odds.bts_yes;
+                } else if (button.classList.contains('bts-no-btn')) {
+                    selectedOption = 'no';
+                    selectedOdds = match.odds.bts_no;
+                }
+
+                updateReturnDisplay();
+            });
+        });
+
+        // Handle 1/2 buttons for DNB
+        matchDiv.querySelectorAll('.dnb-1-btn, .dnb-2-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                if (button.classList.contains('dnb-1-btn')) {
+                    selectedOption = '1';
+                    selectedOdds = match.odds.dnb_1;
+                } else if (button.classList.contains('dnb-2-btn')) {
+                    selectedOption = '2';
+                    selectedOdds = match.odds.dnb_2;
+                }
+
+                updateReturnDisplay();
+            });
+        });
+
+
+        // Handle 3 buttons for DC
+        matchDiv.querySelectorAll('.dc-1x-btn, .dc-12x-btn, .dc-x2-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                if (button.classList.contains('dc-1x-btn')) {
+                    selectedOption = '1x';
+                    selectedOdds = match.odds.dc_1x;
+                } else if (button.classList.contains('dc-12-btn')) {
+                    selectedOption = '12';
+                    selectedOdds = match.odds.dc_12;
+                }else if (button.classList.contains('dc-x2-btn')) {
+                    selectedOption = 'x2';
+                    selectedOdds = match.odds.dc_s2;
+                }
+
+                updateReturnDisplay();
+            });
+        });
+
+
+        // Handle 3 buttons for O/U
+        matchDiv.querySelectorAll('.dc-1x-btn, .dc-12x-btn, .dc-x2-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                if (button.classList.contains('dc-1x-btn')) {
+                    selectedOption = '1x';
+                    selectedOdds = match.odds.dc_1x;
+                } else if (button.classList.contains('dc-12-btn')) {
+                    selectedOption = '12';
+                    selectedOdds = match.odds.dc_12;
+                }else if (button.classList.contains('dc-x2-btn')) {
+                    selectedOption = 'x2';
+                    selectedOdds = match.odds.dc_s2;
+                }
+
+                updateReturnDisplay();
+            });
+        });
+
+        // Handle Home, Draw, Away buttons
+        matchDiv.querySelectorAll('.home-btn, .draw-btn, .away-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
 
                 if (button.classList.contains('home-btn')) {
                     selectedOption = 'home';
-                    selectedOdds = match.home_odds;
+                    selectedOdds = match.odds.home_odds;
                 } else if (button.classList.contains('draw-btn')) {
                     selectedOption = 'draw';
-                    selectedOdds = match.draw_odds;
+                    selectedOdds = match.odds.draw_odds;
                 } else if (button.classList.contains('away-btn')) {
                     selectedOption = 'away';
-                    selectedOdds = match.away_odds;
+                    selectedOdds = match.odds.away_odds;
                 }
 
                 updateReturnDisplay();
@@ -402,24 +521,192 @@
             }
         });
 
-        function updateReturnDisplay() {
-            const betAmount = parseFloat(betInput.value) || 0;
-            if (selectedOdds && betAmount > 0) {
-                const expectedReturn = (betAmount * selectedOdds).toFixed(2);
-                const membershipReturn = (betAmount * selectedOdds * 2).toFixed(2);
+        function handleBetOptionChange() {
+            const selectedBetOption = betOptionDropdown.value;
 
-                returnDisplay.textContent = `Expected Return: $${expectedReturn}`;
-                membershipReturnDisplay.textContent = `Double-Club Membership Return: $${membershipReturn}`;
+            if (selectedBetOption === 'BTS') {
+                // Replace the Home, Draw, Away buttons with Yes/No buttons
+                matchDiv.querySelector('.button-group').innerHTML = `
+                    <button class="bts-yes-btn">Yes</button>
+                    <button class="bts-no-btn">No</button>
+                `;
 
-                membershipReturnDisplay.style.display = 'block';
-                buyButton.style.display = 'inline-block';
+                // Update the odds display for BTS (Yes/No)
+                matchDiv.querySelector('.odds-display').innerHTML = `BTS Yes: ${match.odds.bts_yes}, BTS No: ${match.odds.bts_no}`;
+
+                // Clear previous odds as we're switching bet types
+                selectedOdds = null;
+
+                // Reattach event listeners for the new Yes/No buttons
+                attachBTSListeners(matchDiv);
+
+            } else if (selectedBetOption === 'DNB') {
+                // Replace the Home, Draw, Away buttons with 1/2 buttons
+                matchDiv.querySelector('.button-group').innerHTML = `
+                    <button class="dnb-1-btn">1</button>
+                    <button class="dnb-2-btn">2</button>
+                `;
+
+                // Update the odds display for DNB (1/2)
+                matchDiv.querySelector('.odds-display').innerHTML = `DNB 1: ${match.odds.dnb_1}, DNB 2: ${match.odds.dnb_2}`;
+
+                // Clear previous odds as we're switching bet types
+                selectedOdds = null;
+
+                // Reattach event listeners for the new 1/2 buttons
+                attachDNBListeners(matchDiv);
+
+            } else if (selectedBetOption === 'DC') {
+                // Replace the current buttons with DC ones
+                matchDiv.querySelector('.button-group').innerHTML = `
+                    <button class="dc-1x-btn">1x</button>
+                    <button class="dc-12-btn">12</button>
+                    <button class="dc-x2-btn">x2</button>
+                `;
+
+                // Update the odds display for DC (1X/12/X2)
+                matchDiv.querySelector('.odds-display').innerHTML = `DC 1X: ${match.odds.dc_1x}, DC 12: ${match.odds.dc_12}, DC x2: ${match.odds.dc_x2}`;
+
+                // Clear previous odds as we're switching bet types
+                selectedOdds = null;
+
+                // Reattach event listeners for the new 1x/12/x2 buttons
+                attachDCListeners(matchDiv);
+
             } else {
-                returnDisplay.textContent = 'Expected Return: $0';
-                membershipReturnDisplay.style.display = 'block';
-                buyButton.style.display = 'none';
+                // Revert to the default 1X2 buttons (Home, Draw, Away)
+                matchDiv.querySelector('.button-group').innerHTML = `
+                    <button class="home-btn">Home</button>
+                    <button class="draw-btn">Draw</button>
+                    <button class="away-btn">Away</button>
+                `;
+
+                // Update the odds display for 1X2 (Home, Draw, Away)
+                matchDiv.querySelector('.odds-display').innerHTML = `Home: ${match.odds.home_odds}, Draw: ${match.odds.draw_odds}, Away: ${match.odds.away_odds}`;
+
+                // Set the selected odds based on the previous button selection
+                if (selectedOption === 'home') {
+                    selectedOdds = match.odds.home_odds;
+                } else if (selectedOption === 'draw') {
+                    selectedOdds = match.odds.draw_odds;
+                } else if (selectedOption === 'away') {
+                    selectedOdds = match.odds.away_odds;
+                }
+
+                // Reattach event listeners for the Home, Draw, Away buttons
+                attach1X2Listeners(matchDiv);
+            }
+
+            // Recalculate the expected return based on new bet option
+            updateReturnDisplay();
+        }
+
+            // Function to attach event listeners for Home, Draw, Away buttons
+        function attach1X2Listeners(matchDiv) {
+            matchDiv.querySelectorAll('.home-btn, .draw-btn, .away-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    if (button.classList.contains('home-btn')) {
+                        selectedOption = 'home';
+                        selectedOdds = match.odds.home_odds;
+                    } else if (button.classList.contains('draw-btn')) {
+                        selectedOption = 'draw';
+                        selectedOdds = match.odds.draw_odds;
+                    } else if (button.classList.contains('away-btn')) {
+                        selectedOption = 'away';
+                        selectedOdds = match.odds.away_odds;
+                    }
+
+                    updateReturnDisplay();
+                });
+            });
+        }
+
+        // Function to attach event listeners for BTS Yes/No buttons
+        function attachBTSListeners(matchDiv) {
+            matchDiv.querySelectorAll('.bts-yes-btn, .bts-no-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    if (button.classList.contains('bts-yes-btn')) {
+                        selectedOption = 'yes';
+                        selectedOdds = match.odds.bts_yes;
+                    } else if (button.classList.contains('bts-no-btn')) {
+                        selectedOption = 'no';
+                        selectedOdds = match.odds.bts_no;
+                    }
+
+                    updateReturnDisplay();
+                });
+            });
+        }
+
+
+        // Function to attach event listeners for DNB 1/2 buttons
+        function attachDNBListeners(matchDiv) {
+            matchDiv.querySelectorAll('.dnb-1-btn, .dnb-2-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    if (button.classList.contains('dnb-1-btn')) {
+                        selectedOption = '1';
+                        selectedOdds = match.odds.dnb_1;
+                    } else if (button.classList.contains('dnb-2-btn')) {
+                        selectedOption = '2';
+                        selectedOdds = match.odds.dnb_2;
+                    }
+
+                    updateReturnDisplay();
+                });
+            });
+        }
+
+        // Function to attach event listeners for DC 1/12/X2 buttons
+        function attachDCListeners(matchDiv) {
+            matchDiv.querySelectorAll('.dc-1x-btn, .dc-12-btn, .dc-x2-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    if (button.classList.contains('dc-1x-btn')) {
+                        selectedOption = '1x';
+                        selectedOdds = match.odds.dc_1x;
+                    } else if (button.classList.contains('dc-12-btn')) {
+                        selectedOption = '12';
+                        selectedOdds = match.odds.dc_12;
+
+                    } else if (button.classList.contains('dc-x2-btn')) {
+                        selectedOption = 'x2';
+                        selectedOdds = match.odds.dc_x2;
+                    }
+
+                    updateReturnDisplay();
+                });
+            });
+        }
+
+            function updateReturnDisplay() {
+                const betAmount = parseFloat(betInput.value) || 0;
+                if (selectedOdds && betAmount > 0) {
+                    const expectedReturn = (betAmount * selectedOdds).toFixed(2);
+                    const membershipReturn = (betAmount * selectedOdds * 2).toFixed(2);
+
+                    returnDisplay.textContent = `Expected Return: $${expectedReturn}`;
+                    membershipReturnDisplay.textContent = `Double-Club Membership Return: $${membershipReturn}`;
+
+                    membershipReturnDisplay.style.display = 'block';
+                    buyButton.style.display = 'inline-block';
+                } else {
+                    returnDisplay.textContent = 'Expected Return: $0';
+                    membershipReturnDisplay.style.display = 'block';
+                    buyButton.style.display = 'none';
+                }
             }
         }
-    }
 
     window.onload = () => {
         fetchSports();
