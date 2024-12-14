@@ -1,1 +1,5 @@
 Flask==2.2.2
+werkzeug==2.0.3
+gunicorn==20.1.0
+flask-cors==5.0.0
+pytz==2024.1 
