@@ -86,6 +86,12 @@ def read_matches(sport=None, date=None):
             'dc_x2': row[12],  # Double Chance Draw/Away at index 11 ('DC X2')
             'dnb_1': row[13],  # Draw No Bet Home at index 12 ('DNB 1')
             'dnb_2': row[14],  # Draw No Bet Away at index 13 ('DNB 2')
+            'ov_1d5': row[46],  # Double Chance Home/Draw at index 9 ('DC 1X')
+            'ov_2d5': row[48],  # Double Chance Home/Away at index 10 ('DC 12')
+            'ov_3d5': row[50],  # Double Chance Draw/Away at index 11 ('DC X2')
+            'un_1d5': row[47],  # Double Chance Home/Draw at index 9 ('DC 1X')
+            'un_2d5': row[49],  # Double Chance Home/Away at index 10 ('DC 12')
+            'un_3d5': row[51],  # Double Chance Draw/Away at index 11 ('DC X2')
         }
 
     return matches
