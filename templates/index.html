@@ -288,7 +288,6 @@
     <div id="matches-list"></div>
 </div>
 
-
 <script>
     async function fetchSports() {
         try {
@@ -354,17 +353,18 @@
             <div class="bet-container">
                 <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1">
                 <div class="button-group">
-                    <button class="home-btn">Home</button>
-                    <button class="draw-btn">Draw</button>
-                    <button class="away-btn">Away</button>
+                    <button class="home-btn">Home: ${match.odds.home_odds}</button>
+                    <button class="draw-btn">Draw: ${match.odds.draw_odds}</button>
+                    <button class="away-btn">Away: ${match.odds.away_odds}</button>
                 </div>
                 <!-- Betting Option Dropdown -->
                 <select class="bet-option-dropdown">
                     <option value="1X2" selected>1X2</option>  <!-- Default selected -->
-                    <option value="BTS">BTS</option>
-                    <option value="DNB">DNB</option>
-                    <option value="DC">DC</option>
-                    <option value="OU">OU</option>
+                    <option value="BTS">Both Teams Score</option>
+                    <option value="DNB">Draw No Bet</option>
+                    <option value="DC">Double Chance</option>
+                    <option value="OV">Over/Under</option>
+
                 </select>
             </div>
             <div class="return-display">Expected Return: $0</div>
@@ -442,7 +442,7 @@
                     selectedOdds = match.odds.dc_12;
                 }else if (button.classList.contains('dc-x2-btn')) {
                     selectedOption = 'x2';
-                    selectedOdds = match.odds.dc_s2;
+                    selectedOdds = match.odds.dc_x2;
                 }
 
                 updateReturnDisplay();
@@ -450,7 +450,7 @@
         });
 
 
-        // Handle 3 buttons for O/U
+        // Handle 3 buttons forDC
         matchDiv.querySelectorAll('.dc-1x-btn, .dc-12x-btn, .dc-x2-btn').forEach(button => {
             button.addEventListener('click', () => {
                 matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
@@ -464,12 +464,50 @@
                     selectedOdds = match.odds.dc_12;
                 }else if (button.classList.contains('dc-x2-btn')) {
                     selectedOption = 'x2';
-                    selectedOdds = match.odds.dc_s2;
+                    selectedOdds = match.odds.dc_x2;
                 }
 
                 updateReturnDisplay();
             });
         });
+
+        // Handle 3 buttons for OV
+        matchDiv.querySelectorAll('.ov-1d5-btn, .ov-2d5-btn, .ov-3d5-btn, .un-1d5-btn, .un-2d5-btn, .un-3d5-btn ').forEach(button => {
+            button.addEventListener('click', () => {
+                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                if (button.classList.contains('ov-1d5-btn')) {
+                    selectedOption = '1d5';
+                    selectedOdds = match.odds.ov_1d5;
+                } else if (button.classList.contains('ov-2d5-btn')) {
+                    selectedOption = '2d5';
+                    selectedOdds = match.odds.ov_2d5;
+                }else if (button.classList.contains('ov-3d5-btn')) {
+                    selectedOption = '3d5';
+                    selectedOdds = match.odds.ov_3d5;
+
+                }else if (button.classList.contains('un-1d5-btn')) {
+                    selectedOption = 'un1d5';
+                    selectedOdds = match.odds.un_1d5;
+
+
+                }else if (button.classList.contains('un-2d5-btn')) {
+                    selectedOption = 'un2d5';
+                    selectedOdds = match.odds.un_2d5;
+
+
+                }else if (button.classList.contains('un-3d5-btn')) {
+                    selectedOption = 'un3d5';
+                    selectedOdds = match.odds.un_3d5;
+                }
+
+                updateReturnDisplay();
+            });
+        });
+
+
+
 
         // Handle Home, Draw, Away buttons
         matchDiv.querySelectorAll('.home-btn, .draw-btn, .away-btn').forEach(button => {
@@ -527,8 +565,8 @@
             if (selectedBetOption === 'BTS') {
                 // Replace the Home, Draw, Away buttons with Yes/No buttons
                 matchDiv.querySelector('.button-group').innerHTML = `
-                    <button class="bts-yes-btn">Yes</button>
-                    <button class="bts-no-btn">No</button>
+                    <button class="bts-yes-btn">Yes: ${match.odds.bts_yes} </button>
+                    <button class="bts-no-btn">No: ${match.odds.bts_no}</button>
                 `;
 
                 // Update the odds display for BTS (Yes/No)
@@ -543,8 +581,8 @@
             } else if (selectedBetOption === 'DNB') {
                 // Replace the Home, Draw, Away buttons with 1/2 buttons
                 matchDiv.querySelector('.button-group').innerHTML = `
-                    <button class="dnb-1-btn">1</button>
-                    <button class="dnb-2-btn">2</button>
+                    <button class="dnb-1-btn">1: ${match.odds.dnb_1}</button>
+                    <button class="dnb-2-btn">2: ${match.odds.dnb_2}</button>
                 `;
 
                 // Update the odds display for DNB (1/2)
@@ -559,9 +597,9 @@
             } else if (selectedBetOption === 'DC') {
                 // Replace the current buttons with DC ones
                 matchDiv.querySelector('.button-group').innerHTML = `
-                    <button class="dc-1x-btn">1x</button>
-                    <button class="dc-12-btn">12</button>
-                    <button class="dc-x2-btn">x2</button>
+                    <button class="dc-1x-btn">1x: ${match.odds.dc_1x}</button>
+                    <button class="dc-12-btn">12: ${match.odds.dc_12}</button>
+                    <button class="dc-x2-btn">x2: ${match.odds.dc_x2}</button>
                 `;
 
                 // Update the odds display for DC (1X/12/X2)
@@ -573,12 +611,35 @@
                 // Reattach event listeners for the new 1x/12/x2 buttons
                 attachDCListeners(matchDiv);
 
+
+            } else if (selectedBetOption === 'OV') {
+                // Replace the current buttons with OV ones
+                matchDiv.querySelector('.button-group').innerHTML = `
+                    <button class="ov-1d5-btn">Over 1.5: ${match.odds.ov_1d5}</button>
+                    <button class="ov-2d5-btn">Over 2.5: ${match.odds.ov_2d5}</button>
+                    <button class="ov-3d5-btn">Over 3.5: ${match.odds.ov_3d5}</button>
+                    <button class="un-1d5-btn">Under 1.5: ${match.odds.un_1d5}</button>
+                    <button class="un-2d5-btn">Under 2.5: ${match.odds.un_2d5}</button>
+                    <button class="un-3d5-btn">Under 3.5: ${match.odds.un_3d5}</button>
+
+                `;
+
+                // Update the odds display for OV (1.5/2.5/3.5)
+                matchDiv.querySelector('.odds-display').innerHTML = `Over 1.5: ${match.odds.ov_1d5}, Over 2.5: ${match.odds.ov_2d5}, Over 3.5: ${match.odds.ov_3d5}`;
+
+                // Clear previous odds as we're switching bet types
+                selectedOdds = null;
+
+                // Reattach event listeners for the new OV buttons
+                attachOVListeners(matchDiv);
+
+
             } else {
                 // Revert to the default 1X2 buttons (Home, Draw, Away)
                 matchDiv.querySelector('.button-group').innerHTML = `
-                    <button class="home-btn">Home</button>
-                    <button class="draw-btn">Draw</button>
-                    <button class="away-btn">Away</button>
+                    <button class="home-btn">Home: ${match.odds.home_odds}</button>
+                    <button class="draw-btn">Draw: ${match.odds.draw_odds}</button>
+                    <button class="away-btn">Away: ${match.odds.home_odds}</button>
                 `;
 
                 // Update the odds display for 1X2 (Home, Draw, Away)
@@ -688,6 +749,47 @@
                 });
             });
         }
+
+
+        // Function to attach event listeners for OV
+        function attachOVListeners(matchDiv) {
+            matchDiv.querySelectorAll('.ov-1d5-btn, .ov-2d5-btn, .ov-3d5-btn, .un-1d5-btn, .un-2d5-btn, .un-3d5-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    if (button.classList.contains('ov-1d5-btn')) {
+                        selectedOption = 'Over 1d5';
+                        selectedOdds = match.odds.ov_1d5;
+
+                    } else if (button.classList.contains('ov-2d5-btn')) {
+                        selectedOption = 'Over 2.5';
+                        selectedOdds = match.odds.ov_2d5;
+
+                    } else if (button.classList.contains('ov-3d5-btn')) {
+                        selectedOption = 'Over 3.5';
+                        selectedOdds = match.odds.ov_3d5;
+
+                    } else if (button.classList.contains('un-1d5-btn')) {
+                        selectedOption = 'Under 1.5';
+                        selectedOdds = match.odds.un_1d5;
+
+                    } else if (button.classList.contains('un-2d5-btn')) {
+                        selectedOption = 'Under 2.5';
+                        selectedOdds = match.odds.un_2d5;
+
+                    } else if (button.classList.contains('un-3d5-btn')) {
+                        selectedOption = 'Under 3.5';
+                        selectedOdds = match.odds.un_3d5;
+                    }
+
+                    updateReturnDisplay();
+                });
+            });
+        }
+
+
+
 
             function updateReturnDisplay() {
                 const betAmount = parseFloat(betInput.value) || 0;
