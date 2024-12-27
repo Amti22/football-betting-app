@@ -741,6 +741,34 @@ function renderMatches(matches) {
             if (confirm(confirmMessage)) {
                 const paypalLink = `https://www.paypal.com/paypalme/DoubleClubChannel/${betAmountUSD.toFixed(2)}?currency_code=USD`;
                 window.open(paypalLink, '_blank');
+
+                // Send the bet details to the server to save in orders.txt
+                fetch('/save_bet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        selectedOption,
+                        selectedOdds,
+                        betAmountUSD,
+                        betAmountGBP,
+                        homeTeam,
+                        awayTeam,
+                        matchDate,
+                        currentDateTime: new Date().toISOString() // Add the current timestamp
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Bet details saved successfully');
+                    } else {
+                        console.error('Failed to save bet details');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving bet details:', error);
+                });
             } else {
                 alert("Payment canceled.");
             }
