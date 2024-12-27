@@ -123,19 +123,17 @@
 
         .match-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            margin-bottom: 15px;
             font-weight: 600;
         }
 
         .match-header-time {
             display: flex;
             text-align: center;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            margin-bottom: 15px;
-            font-weight: 600;
+            font-weight: 600;  /* This makes the text bold */
         }
 
 
@@ -143,10 +141,7 @@
             font-size: 1.2rem;
         }
 
-        .odds-display {
-            color: var(--secondary-gray);
-            margin-bottom: 15px;
-        }
+
 
         .bet-container {
             display: flex;
@@ -319,6 +314,20 @@
 
             const matches = await response.json();
             if (matches.length > 0) {
+                // Sort matches by date and time
+                matches.sort((a, b) => {
+                    const [dateA, timeA] = a.formatted_date.split(' - ');
+                    const [dateB, timeB] = b.formatted_date.split(' - ');
+
+                    const [dayA, monthA, yearA] = dateA.split('/');
+                    const [dayB, monthB, yearB] = dateB.split('/');
+
+                    // Format date into 'YYYY-MM-DD' for proper comparison
+                    const dateTimeA = new Date(`${yearA}-${monthA}-${dayA}T${timeA}`);
+                    const dateTimeB = new Date(`${yearB}-${monthB}-${dayB}T${timeB}`);
+
+                    return dateTimeA - dateTimeB; // Ascending order (earliest first)
+                });
                 renderMatches(matches);
             } else {
                 document.getElementById('matches-list').innerHTML = '<p>No matches available</p>';
@@ -329,7 +338,8 @@
         }
     }
 
-    function renderMatches(matches) {
+
+function renderMatches(matches) {
     const matchesList = document.getElementById('matches-list');
     matchesList.innerHTML = '';
 
@@ -338,44 +348,57 @@
         matchDiv.classList.add('match-container');
         matchDiv.setAttribute('data-id', match.id);
 
-        matchDiv.innerHTML = `
-            <div class="match-header-time">
-                <span>${match.formatted_date}</span>
-            </div>
-            <div class="match-header">
-                <span>${match.home_team}</span>
-                <span>VS</span>
-                <span>${match.away_team}</span>
-            </div>
-            <div class="odds-display" style="text-align: center;">
-                <strong></strong> Home: ${match.odds.home_odds}, Draw: ${match.odds.draw_odds}, Away: ${match.odds.away_odds}
-            </div>
-            <div class="bet-container">
-                <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1">
-                <div class="button-group">
-                    <button class="home-btn">Home: ${match.odds.home_odds}</button>
-                    <button class="draw-btn">Draw: ${match.odds.draw_odds}</button>
-                    <button class="away-btn">Away: ${match.odds.away_odds}</button>
+        // Check if odds are available and show/hide elements accordingly
+        const homeOdds = match.odds.home_odds !== 'n/a';
+        const drawOdds = match.odds.draw_odds !== 'n/a';
+        const awayOdds = match.odds.away_odds !== 'n/a';
+
+        // Only display match if at least one odd is available
+        if (homeOdds || drawOdds || awayOdds) {
+            matchDiv.innerHTML = `
+                <div class="match-header">
+                    <span>${match.home_team}</span>
                 </div>
-                <!-- Betting Option Dropdown -->
-                <select class="bet-option-dropdown">
-                    <option value="1X2" selected>1X2</option>  <!-- Default selected -->
-                    <option value="BTS">Both Teams Score</option>
-                    <option value="DNB">Draw No Bet</option>
-                    <option value="DC">Double Chance</option>
-                    <option value="OV">Over/Under</option>
+                    <div class="match-header">
+                    <span>VS</span>
+                </div>
+                </div>
+                    <div class="match-header">
+                    <span>${match.away_team}</span>
+                </div>
 
-                </select>
-            </div>
-            <div class="return-display">Expected Return: $0</div>
-            <div class="membership-return">Double-Club Membership Return: $0</div>
-            <button class="buy-button" style="display: none;">Place Bet</button>
-        `;
+                <div class="odds-display" style="text-align: center;">
+                    <strong></strong>
+                    ${homeOdds ? `${match.formatted_date}` : ''}
+                </div>
+                <div class="bet-container">
+                    <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1">
+                    <div class="button-group">
+                        ${homeOdds ? `<button class="home-btn">Home: ${match.odds.home_odds}</button>` : ''}
+                        ${drawOdds ? `<button class="draw-btn">Draw: ${match.odds.draw_odds}</button>` : ''}
+                        ${awayOdds ? `<button class="away-btn">Away: ${match.odds.away_odds}</button>` : ''}
+                    </div>
+                    <!-- Betting Option Dropdown -->
+                    <select class="bet-option-dropdown">
+                        <option value="1X2" selected>1X2</option>  <!-- Default selected -->
+                        <option value="BTS">Both Teams Score</option>
+                        <option value="DNB">Draw No Bet</option>
+                        <option value="DC">Double Chance</option>
+                        <option value="OV">Over/Under</option>
+                        <option value="AH">Asian Handicap</option>
+                    </select>
+                </div>
+                <div class="return-display">Expected Return: $0</div>
+                <div class="membership-return">Double-Club Membership Return: $0</div>
+                <button class="buy-button" style="display: none;">Place Bet</button>
+            `;
 
-        matchesList.appendChild(matchDiv);
-        attachListeners(matchDiv, match);
+            matchesList.appendChild(matchDiv);
+            attachListeners(matchDiv, match);
+        }
     });
 }
+
 
 
     function attachListeners(matchDiv, match) {
@@ -428,27 +451,6 @@
         });
 
 
-        // Handle 3 buttons for DC
-        matchDiv.querySelectorAll('.dc-1x-btn, .dc-12x-btn, .dc-x2-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-
-                if (button.classList.contains('dc-1x-btn')) {
-                    selectedOption = '1x';
-                    selectedOdds = match.odds.dc_1x;
-                } else if (button.classList.contains('dc-12-btn')) {
-                    selectedOption = '12';
-                    selectedOdds = match.odds.dc_12;
-                }else if (button.classList.contains('dc-x2-btn')) {
-                    selectedOption = 'x2';
-                    selectedOdds = match.odds.dc_x2;
-                }
-
-                updateReturnDisplay();
-            });
-        });
-
 
         // Handle 3 buttons forDC
         matchDiv.querySelectorAll('.dc-1x-btn, .dc-12x-btn, .dc-x2-btn').forEach(button => {
@@ -470,6 +472,191 @@
                 updateReturnDisplay();
             });
         });
+
+
+        // Handle AH buttons (AH 1 -3.75, AH 2 -3.75, etc.)
+        matchDiv.querySelectorAll('.ah-1m3d75-btn, .ah-2m3d75-btn, .ah-1m3d5-btn, .ah-2m3d5-btn, .ah-1m3d25-btn, .ah-2m3d25-btn, .ah-1m3-btn, .ah-2m3-btn, .ah-1m2d75-btn, .ah-2m2d75-btn, .ah-1m2d5-btn, .ah-2m2d5-btn, .ah-1m2d25-btn, .ah-2m2d25-btn, .ah-1m2-btn, .ah-2m2-btn, .ah-1m1d75-btn, .ah-2m1d75-btn, .ah-1m1d5-btn, .ah-2m1d5-btn, .ah-1m1d25-btn, .ah-2m1d25-btn, .ah-1m1-btn, .ah-2m1-btn, .ah-1m0d75-btn, .ah-2m0d75-btn, .ah-1m0d5-btn, .ah-2m0d5-btn, .ah-1m0d25-btn, .ah-2m0d25-btn, .ah-1m0-btn, .ah-2m0-btn, .ah-1p1d75-btn, .ah-2p1d75-btn, .ah-1p1d5-btn, .ah-2p1d5-btn, .ah-1p1d25-btn, .ah-2p1d25-btn, .ah-1p1-btn, .ah-2p1-btn, .ah-1p2d75-btn, .ah-2p2d75-btn, .ah-1p2d5-btn, .ah-2p2d5-btn, .ah-1p2d25-btn, .ah-2p2d25-btn, .ah-1p2-btn, .ah-2p2-btn, .ah-1p3d75-btn, .ah-2p3d75-btn, .ah-1p3d5-btn, .ah-2p3d5-btn, .ah-1p3d25-btn, .ah-2p3d25-btn, .ah-1p3-btn, .ah-2p3-btn')
+        .forEach(button => {
+            button.addEventListener('click', () => {
+                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                // Determine which button was clicked and set the selected option and odds
+                if (button.classList.contains('ah-1m3d75-btn')) {
+                    selectedOption = 'ah1_m3d75';
+                    selectedOdds = match.odds.ah1_m3d75;
+                } else if (button.classList.contains('ah-2m3d75-btn')) {
+                    selectedOption = 'ah2_m3d75';
+                    selectedOdds = match.odds.ah2_m3d75;
+                } else if (button.classList.contains('ah-1m3d5-btn')) {
+                    selectedOption = 'ah1_m3d5';
+                    selectedOdds = match.odds.ah1_m3d5;
+                } else if (button.classList.contains('ah-2m3d5-btn')) {
+                    selectedOption = 'ah2_m3d5';
+                    selectedOdds = match.odds.ah2_m3d5;
+                } else if (button.classList.contains('ah-1m3d25-btn')) {
+                    selectedOption = 'ah1_m3d25';
+                    selectedOdds = match.odds.ah1_m3d25;
+                } else if (button.classList.contains('ah-2m3d25-btn')) {
+                    selectedOption = 'ah2_m3d25';
+                    selectedOdds = match.odds.ah2_m3d25;
+                } else if (button.classList.contains('ah-1m3-btn')) {
+                    selectedOption = 'ah1_m3';
+                    selectedOdds = match.odds.ah1_m3;
+                } else if (button.classList.contains('ah-2m3-btn')) {
+                    selectedOption = 'ah2_m3';
+                    selectedOdds = match.odds.ah2_m3;
+                } else if (button.classList.contains('ah-1m2d75-btn')) {
+                    selectedOption = 'ah1_m2d75';
+                    selectedOdds = match.odds.ah1_m2d75;
+                } else if (button.classList.contains('ah-2m2d75-btn')) {
+                    selectedOption = 'ah2_m2d75';
+                    selectedOdds = match.odds.ah2_m2d75;
+                } else if (button.classList.contains('ah-1m2d5-btn')) {
+                    selectedOption = 'ah1_m2d5';
+                    selectedOdds = match.odds.ah1_m2d5;
+                } else if (button.classList.contains('ah-2m2d5-btn')) {
+                    selectedOption = 'ah2_m2d5';
+                    selectedOdds = match.odds.ah2_m2d5;
+                } else if (button.classList.contains('ah-1m2d25-btn')) {
+                    selectedOption = 'ah1_m2d25';
+                    selectedOdds = match.odds.ah1_m2d25;
+                } else if (button.classList.contains('ah-2m2d25-btn')) {
+                    selectedOption = 'ah2_m2d25';
+                    selectedOdds = match.odds.ah2_m2d25;
+                } else if (button.classList.contains('ah-1m2-btn')) {
+                    selectedOption = 'ah1_m2';
+                    selectedOdds = match.odds.ah1_m2;
+                } else if (button.classList.contains('ah-2m2-btn')) {
+                    selectedOption = 'ah2_m2';
+                    selectedOdds = match.odds.ah2_m2;
+                } else if (button.classList.contains('ah-1m1d75-btn')) {
+                    selectedOption = 'ah1_m1d75';
+                    selectedOdds = match.odds.ah1_m1d75;
+                } else if (button.classList.contains('ah-2m1d75-btn')) {
+                    selectedOption = 'ah2_m1d75';
+                    selectedOdds = match.odds.ah2_m1d75;
+                } else if (button.classList.contains('ah-1m1d5-btn')) {
+                    selectedOption = 'ah1_m1d5';
+                    selectedOdds = match.odds.ah1_m1d5;
+                } else if (button.classList.contains('ah-2m1d5-btn')) {
+                    selectedOption = 'ah2_m1d5';
+                    selectedOdds = match.odds.ah2_m1d5;
+                } else if (button.classList.contains('ah-1m1d25-btn')) {
+                    selectedOption = 'ah1_m1d25';
+                    selectedOdds = match.odds.ah1_m1d25;
+                } else if (button.classList.contains('ah-2m1d25-btn')) {
+                    selectedOption = 'ah2_m1d25';
+                    selectedOdds = match.odds.ah2_m1d25;
+                } else if (button.classList.contains('ah-1m1-btn')) {
+                    selectedOption = 'ah1_m1';
+                    selectedOdds = match.odds.ah1_m1;
+                } else if (button.classList.contains('ah-2m1-btn')) {
+                    selectedOption = 'ah2_m1';
+                    selectedOdds = match.odds.ah2_m1;
+                } else if (button.classList.contains('ah-1m0d75-btn')) {
+                    selectedOption = 'ah1_m0d75';
+                    selectedOdds = match.odds.ah1_m0d75;
+                } else if (button.classList.contains('ah-2m0d75-btn')) {
+                    selectedOption = 'ah2_m0d75';
+                    selectedOdds = match.odds.ah2_m0d75;
+                } else if (button.classList.contains('ah-1m0d5-btn')) {
+                    selectedOption = 'ah1_m0d5';
+                    selectedOdds = match.odds.ah1_m0d5;
+                } else if (button.classList.contains('ah-2m0d5-btn')) {
+                    selectedOption = 'ah2_m0d5';
+                    selectedOdds = match.odds.ah2_m0d5;
+                } else if (button.classList.contains('ah-1m0d25-btn')) {
+                    selectedOption = 'ah1_m0d25';
+                    selectedOdds = match.odds.ah1_m0d25;
+                } else if (button.classList.contains('ah-2m0d25-btn')) {
+                    selectedOption = 'ah2_m0d25';
+                    selectedOdds = match.odds.ah2_m0d25;
+                } else if (button.classList.contains('ah-1m0-btn')) {
+                    selectedOption = 'ah1_m0';
+                    selectedOdds = match.odds.ah1_m0;
+                } else if (button.classList.contains('ah-2m0-btn')) {
+                    selectedOption = 'ah2_m0';
+                    selectedOdds = match.odds.ah2_m0;
+                } else if (button.classList.contains('ah-1p1d75-btn')) {
+                    selectedOption = 'ah1_p1d75';
+                    selectedOdds = match.odds.ah1_p1d75;
+                } else if (button.classList.contains('ah-2p1d75-btn')) {
+                    selectedOption = 'ah2_p1d75';
+                    selectedOdds = match.odds.ah2_p1d75;
+                } else if (button.classList.contains('ah-1p1d5-btn')) {
+                    selectedOption = 'ah1_p1d5';
+                    selectedOdds = match.odds.ah1_p1d5;
+                } else if (button.classList.contains('ah-2p1d5-btn')) {
+                    selectedOption = 'ah2_p1d5';
+                    selectedOdds = match.odds.ah2_p1d5;
+                } else if (button.classList.contains('ah-1p1d25-btn')) {
+                    selectedOption = 'ah1_p1d25';
+                    selectedOdds = match.odds.ah1_p1d25;
+                } else if (button.classList.contains('ah-2p1d25-btn')) {
+                    selectedOption = 'ah2_p1d25';
+                    selectedOdds = match.odds.ah2_p1d25;
+                } else if (button.classList.contains('ah-1p1-btn')) {
+                    selectedOption = 'ah1_p1';
+                    selectedOdds = match.odds.ah1_p1;
+                } else if (button.classList.contains('ah-2p1-btn')) {
+                    selectedOption = 'ah2_p1';
+                    selectedOdds = match.odds.ah2_p1;
+                } else if (button.classList.contains('ah-1p2d75-btn')) {
+                    selectedOption = 'ah1_p2d75';
+                    selectedOdds = match.odds.ah1_p2d75;
+                } else if (button.classList.contains('ah-2p2d75-btn')) {
+                    selectedOption = 'ah2_p2d75';
+                    selectedOdds = match.odds.ah2_p2d75;
+                } else if (button.classList.contains('ah-1p2d5-btn')) {
+                    selectedOption = 'ah1_p2d5';
+                    selectedOdds = match.odds.ah1_p2d5;
+                } else if (button.classList.contains('ah-2p2d5-btn')) {
+                    selectedOption = 'ah2_p2d5';
+                    selectedOdds = match.odds.ah2_p2d5;
+                } else if (button.classList.contains('ah-1p2d25-btn')) {
+                    selectedOption = 'ah1_p2d25';
+                    selectedOdds = match.odds.ah1_p2d25;
+                } else if (button.classList.contains('ah-2p2d25-btn')) {
+                    selectedOption = 'ah2_p2d25';
+                    selectedOdds = match.odds.ah2_p2d25;
+                } else if (button.classList.contains('ah-1p2-btn')) {
+                    selectedOption = 'ah1_p2';
+                    selectedOdds = match.odds.ah1_p2;
+                } else if (button.classList.contains('ah-2p2-btn')) {
+                    selectedOption = 'ah2_p2';
+                    selectedOdds = match.odds.ah2_p2;
+                } else if (button.classList.contains('ah-1p3d75-btn')) {
+                    selectedOption = 'ah1_p3d75';
+                    selectedOdds = match.odds.ah1_p3d75;
+                } else if (button.classList.contains('ah-2p3d75-btn')) {
+                    selectedOption = 'ah2_p3d75';
+                    selectedOdds = match.odds.ah2_p3d75;
+                } else if (button.classList.contains('ah-1p3d5-btn')) {
+                    selectedOption = 'ah1_p3d5';
+                    selectedOdds = match.odds.ah1_p3d5;
+                } else if (button.classList.contains('ah-2p3d5-btn')) {
+                    selectedOption = 'ah2_p3d5';
+                    selectedOdds = match.odds.ah2_p3d5;
+                } else if (button.classList.contains('ah-1p3d25-btn')) {
+                    selectedOption = 'ah1_p3d25';
+                    selectedOdds = match.odds.ah1_p3d25;
+                } else if (button.classList.contains('ah-2p3d25-btn')) {
+                    selectedOption = 'ah2_p3d25';
+                    selectedOdds = match.odds.ah2_p3d25;
+                } else if (button.classList.contains('ah-1p3-btn')) {
+                    selectedOption = 'ah1_p3';
+                    selectedOdds = match.odds.ah1_p3;
+                } else if (button.classList.contains('ah-2p3-btn')) {
+                    selectedOption = 'ah2_p3';
+                    selectedOdds = match.odds.ah2_p3;
+                }
+
+                // Update the display
+                updateReturnDisplay();
+            });
+        });
+
 
         // Handle 3 buttons for OV
         matchDiv.querySelectorAll('.ov-1d5-btn, .ov-2d5-btn, .ov-3d5-btn, .un-1d5-btn, .un-2d5-btn, .un-3d5-btn ').forEach(button => {
@@ -569,8 +756,6 @@
                     <button class="bts-no-btn">No: ${match.odds.bts_no}</button>
                 `;
 
-                // Update the odds display for BTS (Yes/No)
-                matchDiv.querySelector('.odds-display').innerHTML = `BTS Yes: ${match.odds.bts_yes}, BTS No: ${match.odds.bts_no}`;
 
                 // Clear previous odds as we're switching bet types
                 selectedOdds = null;
@@ -585,8 +770,6 @@
                     <button class="dnb-2-btn">2: ${match.odds.dnb_2}</button>
                 `;
 
-                // Update the odds display for DNB (1/2)
-                matchDiv.querySelector('.odds-display').innerHTML = `DNB 1: ${match.odds.dnb_1}, DNB 2: ${match.odds.dnb_2}`;
 
                 // Clear previous odds as we're switching bet types
                 selectedOdds = null;
@@ -602,14 +785,82 @@
                     <button class="dc-x2-btn">x2: ${match.odds.dc_x2}</button>
                 `;
 
-                // Update the odds display for DC (1X/12/X2)
-                matchDiv.querySelector('.odds-display').innerHTML = `DC 1X: ${match.odds.dc_1x}, DC 12: ${match.odds.dc_12}, DC x2: ${match.odds.dc_x2}`;
 
                 // Clear previous odds as we're switching bet types
                 selectedOdds = null;
 
                 // Reattach event listeners for the new 1x/12/x2 buttons
                 attachDCListeners(matchDiv);
+
+            } else if (selectedBetOption === 'AH') {
+
+                matchDiv.querySelector('.button-group').innerHTML = `
+                    <button class="ah1_m3d75-btn">AH 1 -3.75: ${match.odds.ah1_m3d75}</button>
+                    <button class="ah2_m3d75-btn">AH 2 -3.75: ${match.odds.ah2_m3d75}</button>
+                    <button class="ah1_m3d5-btn">AH 1 -3.5: ${match.odds.ah1_m3d5}</button>
+                    <button class="ah2_m3d5-btn">AH 2 -3.5: ${match.odds.ah2_m3d5}</button>
+                    <button class="ah1_m3d25-btn">AH 1 -3.25: ${match.odds.ah1_m3d25}</button>
+                    <button class="ah2_m3d25-btn">AH 2 -3.25: ${match.odds.ah2_m3d25}</button>
+                    <button class="ah1_m3-btn">AH 1 -3.0: ${match.odds.ah1_m3}</button>
+                    <button class="ah2_m3-btn">AH 2 -3.0: ${match.odds.ah2_m3}</button>
+                    <button class="ah1_m2d75-btn">AH 1 -2.75: ${match.odds.ah1_m2d75}</button>
+                    <button class="ah2_m2d75-btn">AH 2 -2.75: ${match.odds.ah2_m2d75}</button>
+                    <button class="ah1_m2d5-btn">AH 1 -2.5: ${match.odds.ah1_m2d5}</button>
+                    <button class="ah2_m2d5-btn">AH 2 -2.5: ${match.odds.ah2_m2d5}</button>
+                    <button class="ah1_m2d25-btn">AH 1 -2.25: ${match.odds.ah1_m2d25}</button>
+                    <button class="ah2_m2d25-btn">AH 2 -2.25: ${match.odds.ah2_m2d25}</button>
+                    <button class="ah1_m2-btn">AH 1 -2.0: ${match.odds.ah1_m2}</button>
+                    <button class="ah2_m2-btn">AH 2 -2.0: ${match.odds.ah2_m2}</button>
+                    <button class="ah1_m1d75-btn">AH 1 -1.75: ${match.odds.ah1_m1d75}</button>
+                    <button class="ah2_m1d75-btn">AH 2 -1.75: ${match.odds.ah2_m1d75}</button>
+                    <button class="ah1_m1d5-btn">AH 1 -1.5: ${match.odds.ah1_m1d5}</button>
+                    <button class="ah2_m1d5-btn">AH 2 -1.5: ${match.odds.ah2_m1d5}</button>
+                    <button class="ah1_m1d25-btn">AH 1 -1.25: ${match.odds.ah1_m1d25}</button>
+                    <button class="ah2_m1d25-btn">AH 2 -1.25: ${match.odds.ah2_m1d25}</button>
+                    <button class="ah1_m1-btn">AH 1 -1.0: ${match.odds.ah1_m1}</button>
+                    <button class="ah2_m1-btn">AH 2 -1.0: ${match.odds.ah2_m1}</button>
+                    <button class="ah1_m0d75-btn">AH 1 -0.75: ${match.odds.ah1_m0d75}</button>
+                    <button class="ah2_m0d75-btn">AH 2 -0.75: ${match.odds.ah2_m0d75}</button>
+                    <button class="ah1_m0d5-btn">AH 1 -0.5: ${match.odds.ah1_m0d5}</button>
+                    <button class="ah2_m0d5-btn">AH 2 -0.5: ${match.odds.ah2_m0d5}</button>
+                    <button class="ah1_m0d25-btn">AH 1 -0.25: ${match.odds.ah1_m0d25}</button>
+                    <button class="ah2_m0d25-btn">AH 2 -0.25: ${match.odds.ah2_m0d25}</button>
+                    <button class="ah1_m0-btn">AH 1 0.0: ${match.odds.ah1_m0}</button>
+                    <button class="ah2_m0-btn">AH 2 0.0: ${match.odds.ah2_m0}</button>
+                    <button class="ah1_p1d75-btn">AH 1 0.25: ${match.odds.ah1_p1d75}</button>
+                    <button class="ah2_p1d75-btn">AH 2 0.25: ${match.odds.ah2_p1d75}</button>
+                    <button class="ah1_p1d5-btn">AH 1 0.5: ${match.odds.ah1_p1d5}</button>
+                    <button class="ah2_p1d5-btn">AH 2 0.5: ${match.odds.ah2_p1d5}</button>
+                    <button class="ah1_p1d25-btn">AH 1 0.75: ${match.odds.ah1_p1d25}</button>
+                    <button class="ah2_p1d25-btn">AH 2 0.75: ${match.odds.ah2_p1d25}</button>
+                    <button class="ah1_p1-btn">AH 1 1.0: ${match.odds.ah1_p1}</button>
+                    <button class="ah2_p1-btn">AH 2 1.0: ${match.odds.ah2_p1}</button>
+                    <button class="ah1_p2d75-btn">AH 1 1.75: ${match.odds.ah1_p2d75}</button>
+                    <button class="ah2_p2d75-btn">AH 2 1.75: ${match.odds.ah2_p2d75}</button>
+                    <button class="ah1_p2d5-btn">AH 1 2.0: ${match.odds.ah1_p2d5}</button>
+                    <button class="ah2_p2d5-btn">AH 2 2.0: ${match.odds.ah2_p2d5}</button>
+                    <button class="ah1_p2d25-btn">AH 1 2.25: ${match.odds.ah1_p2d25}</button>
+                    <button class="ah2_p2d25-btn">AH 2 2.25: ${match.odds.ah2_p2d25}</button>
+                    <button class="ah1_p2-btn">AH 1 2.5: ${match.odds.ah1_p2}</button>
+                    <button class="ah2_p2-btn">AH 2 2.5: ${match.odds.ah2_p2}</button>
+                    <button class="ah1_p3d75-btn">AH 1 2.75: ${match.odds.ah1_p3d75}</button>
+                    <button class="ah2_p3d75-btn">AH 2 2.75: ${match.odds.ah2_p3d75}</button>
+                    <button class="ah1_p3d5-btn">AH 1 3.0: ${match.odds.ah1_p3d5}</button>
+                    <button class="ah2_p3d5-btn">AH 2 3.0: ${match.odds.ah2_p3d5}</button>
+                    <button class="ah1_p3d25-btn">AH 1 3.25: ${match.odds.ah1_p3d25}</button>
+                    <button class="ah2_p3d25-btn">AH 2 3.25: ${match.odds.ah2_p3d25}</button>
+                    <button class="ah1_p3-btn">AH 1 3.5: ${match.odds.ah1_p3}</button>
+                    <button class="ah2_p3-btn">AH 2 3.5: ${match.odds.ah2_p3}</button>
+
+                 `;
+
+                // Clear previous odds as we're switching bet types
+                selectedOdds = null;
+
+                // Reattach event listeners for the new AH buttons
+                attachAHListeners(matchDiv);
+
+
 
 
             } else if (selectedBetOption === 'OV') {
@@ -624,9 +875,6 @@
 
                 `;
 
-                // Update the odds display for OV (1.5/2.5/3.5)
-                matchDiv.querySelector('.odds-display').innerHTML = `Over 1.5: ${match.odds.ov_1d5}, Over 2.5: ${match.odds.ov_2d5}, Over 3.5: ${match.odds.ov_3d5}`;
-
                 // Clear previous odds as we're switching bet types
                 selectedOdds = null;
 
@@ -639,11 +887,10 @@
                 matchDiv.querySelector('.button-group').innerHTML = `
                     <button class="home-btn">Home: ${match.odds.home_odds}</button>
                     <button class="draw-btn">Draw: ${match.odds.draw_odds}</button>
-                    <button class="away-btn">Away: ${match.odds.home_odds}</button>
+                    <button class="away-btn">Away: ${match.odds.away_odds}</button>
                 `;
 
-                // Update the odds display for 1X2 (Home, Draw, Away)
-                matchDiv.querySelector('.odds-display').innerHTML = `Home: ${match.odds.home_odds}, Draw: ${match.odds.draw_odds}, Away: ${match.odds.away_odds}`;
+
 
                 // Set the selected odds based on the previous button selection
                 if (selectedOption === 'home') {
@@ -749,6 +996,195 @@
                 });
             });
         }
+
+
+        // Function to attach event listeners for AH buttons
+        function attachAHListeners(matchDiv) {
+            // Select all AH buttons for different odds values
+            matchDiv.querySelectorAll('.ah1_m3d75-btn, .ah2_m3d75-btn, .ah1_m3d5-btn, .ah2_m3d5-btn, .ah1_m3d25-btn, .ah2_m3d25-btn, .ah1_m3-btn, .ah2_m3-btn, .ah1_m2d75-btn, .ah2_m2d75-btn, .ah1_m2d5-btn, .ah2_m2d5-btn, .ah1_m2d25-btn, .ah2_m2d25-btn, .ah1_m2-btn, .ah2_m2-btn, .ah1_m1d75-btn, .ah2_m1d75-btn, .ah1_m1d5-btn, .ah2_m1d5-btn, .ah1_m1d25-btn, .ah2_m1d25-btn, .ah1_m1-btn, .ah2_m1-btn, .ah1_m0d75-btn, .ah2_m0d75-btn, .ah1_m0d5-btn, .ah2_m0d5-btn, .ah1_m0d25-btn, .ah2_m0d25-btn, .ah1_m0-btn, .ah2_m0-btn, .ah1_p1d75-btn, .ah2_p1d75-btn, .ah1_p1d5-btn, .ah2_p1d5-btn, .ah1_p1d25-btn, .ah2_p1d25-btn, .ah1_p1-btn, .ah2_p1-btn, .ah1_p2d75-btn, .ah2_p2d75-btn, .ah1_p2d5-btn, .ah2_p2d5-btn, .ah1_p2d25-btn, .ah2_p2d25-btn, .ah1_p2-btn, .ah2_p2-btn, .ah1_p3d75-btn, .ah2_p3d75-btn, .ah1_p3d5-btn, .ah2_p3d5-btn, .ah1_p3d25-btn, .ah2_p3d25-btn, .ah1_p3-btn, .ah2_p3-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons in the button group
+                    matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+                    // Add active class to the clicked button
+                    button.classList.add('active');
+
+                    // Determine which button was clicked and set the corresponding selected option and odds
+                    if (button.classList.contains('ah1_m3d75-btn')) {
+                        selectedOption = 'AH 1 -3.75';
+                        selectedOdds = match.odds.ah1_m3d75;
+                    } else if (button.classList.contains('ah2_m3d75-btn')) {
+                        selectedOption = 'AH 2 -3.75';
+                        selectedOdds = match.odds.ah2_m3d75;
+                    } else if (button.classList.contains('ah1_m3d5-btn')) {
+                        selectedOption = 'AH 1 -3.5';
+                        selectedOdds = match.odds.ah1_m3d5;
+                    } else if (button.classList.contains('ah2_m3d5-btn')) {
+                        selectedOption = 'AH 2 -3.5';
+                        selectedOdds = match.odds.ah2_m3d5;
+                    } else if (button.classList.contains('ah1_m3d25-btn')) {
+                        selectedOption = 'AH 1 -3.25';
+                        selectedOdds = match.odds.ah1_m3d25;
+                    } else if (button.classList.contains('ah2_m3d25-btn')) {
+                        selectedOption = 'AH 2 -3.25';
+                        selectedOdds = match.odds.ah2_m3d25;
+                    } else if (button.classList.contains('ah1_m3-btn')) {
+                        selectedOption = 'AH 1 -3.0';
+                        selectedOdds = match.odds.ah1_m3;
+                    } else if (button.classList.contains('ah2_m3-btn')) {
+                        selectedOption = 'AH 2 -3.0';
+                        selectedOdds = match.odds.ah2_m3;
+                    } else if (button.classList.contains('ah1_m2d75-btn')) {
+                        selectedOption = 'AH 1 -2.75';
+                        selectedOdds = match.odds.ah1_m2d75;
+                    } else if (button.classList.contains('ah2_m2d75-btn')) {
+                        selectedOption = 'AH 2 -2.75';
+                        selectedOdds = match.odds.ah2_m2d75;
+                    } else if (button.classList.contains('ah1_m2d5-btn')) {
+                        selectedOption = 'AH 1 -2.5';
+                        selectedOdds = match.odds.ah1_m2d5;
+                    } else if (button.classList.contains('ah2_m2d5-btn')) {
+                        selectedOption = 'AH 2 -2.5';
+                        selectedOdds = match.odds.ah2_m2d5;
+                    } else if (button.classList.contains('ah1_m2d25-btn')) {
+                        selectedOption = 'AH 1 -2.25';
+                        selectedOdds = match.odds.ah1_m2d25;
+                    } else if (button.classList.contains('ah2_m2d25-btn')) {
+                        selectedOption = 'AH 2 -2.25';
+                        selectedOdds = match.odds.ah2_m2d25;
+                    } else if (button.classList.contains('ah1_m2-btn')) {
+                        selectedOption = 'AH 1 -2.0';
+                        selectedOdds = match.odds.ah1_m2;
+                    } else if (button.classList.contains('ah2_m2-btn')) {
+                        selectedOption = 'AH 2 -2.0';
+                        selectedOdds = match.odds.ah2_m2;
+                    } else if (button.classList.contains('ah1_m1d75-btn')) {
+                        selectedOption = 'AH 1 -1.75';
+                        selectedOdds = match.odds.ah1_m1d75;
+                    } else if (button.classList.contains('ah2_m1d75-btn')) {
+                        selectedOption = 'AH 2 -1.75';
+                        selectedOdds = match.odds.ah2_m1d75;
+                    } else if (button.classList.contains('ah1_m1d5-btn')) {
+                        selectedOption = 'AH 1 -1.5';
+                        selectedOdds = match.odds.ah1_m1d5;
+                    } else if (button.classList.contains('ah2_m1d5-btn')) {
+                        selectedOption = 'AH 2 -1.5';
+                        selectedOdds = match.odds.ah2_m1d5;
+                    } else if (button.classList.contains('ah1_m1d25-btn')) {
+                        selectedOption = 'AH 1 -1.25';
+                        selectedOdds = match.odds.ah1_m1d25;
+                    } else if (button.classList.contains('ah2_m1d25-btn')) {
+                        selectedOption = 'AH 2 -1.25';
+                        selectedOdds = match.odds.ah2_m1d25;
+                    } else if (button.classList.contains('ah1_m1-btn')) {
+                        selectedOption = 'AH 1 -1.0';
+                        selectedOdds = match.odds.ah1_m1;
+                    } else if (button.classList.contains('ah2_m1-btn')) {
+                        selectedOption = 'AH 2 -1.0';
+                        selectedOdds = match.odds.ah2_m1;
+                    } else if (button.classList.contains('ah1_m0d75-btn')) {
+                        selectedOption = 'AH 1 -0.75';
+                        selectedOdds = match.odds.ah1_m0d75;
+                    } else if (button.classList.contains('ah2_m0d75-btn')) {
+                        selectedOption = 'AH 2 -0.75';
+                        selectedOdds = match.odds.ah2_m0d75;
+                    } else if (button.classList.contains('ah1_m0d5-btn')) {
+                        selectedOption = 'AH 1 -0.5';
+                        selectedOdds = match.odds.ah1_m0d5;
+                    } else if (button.classList.contains('ah2_m0d5-btn')) {
+                        selectedOption = 'AH 2 -0.5';
+                        selectedOdds = match.odds.ah2_m0d5;
+                    } else if (button.classList.contains('ah1_m0d25-btn')) {
+                        selectedOption = 'AH 1 -0.25';
+                        selectedOdds = match.odds.ah1_m0d25;
+                    } else if (button.classList.contains('ah2_m0d25-btn')) {
+                        selectedOption = 'AH 2 -0.25';
+                        selectedOdds = match.odds.ah2_m0d25;
+                    } else if (button.classList.contains('ah1_m0-btn')) {
+                        selectedOption = 'AH 1 0.0';
+                        selectedOdds = match.odds.ah1_m0;
+                    } else if (button.classList.contains('ah2_m0-btn')) {
+                        selectedOption = 'AH 2 0.0';
+                        selectedOdds = match.odds.ah2_m0;
+                    } else if (button.classList.contains('ah1_p1d75-btn')) {
+                        selectedOption = 'AH 1 0.25';
+                        selectedOdds = match.odds.ah1_p1d75;
+                    } else if (button.classList.contains('ah2_p1d75-btn')) {
+                        selectedOption = 'AH 2 0.25';
+                        selectedOdds = match.odds.ah2_p1d75;
+                    } else if (button.classList.contains('ah1_p1d5-btn')) {
+                        selectedOption = 'AH 1 0.5';
+                        selectedOdds = match.odds.ah1_p1d5;
+                    } else if (button.classList.contains('ah2_p1d5-btn')) {
+                        selectedOption = 'AH 2 0.5';
+                        selectedOdds = match.odds.ah2_p1d5;
+                    } else if (button.classList.contains('ah1_p1d25-btn')) {
+                        selectedOption = 'AH 1 0.75';
+                        selectedOdds = match.odds.ah1_p1d25;
+                    } else if (button.classList.contains('ah2_p1d25-btn')) {
+                        selectedOption = 'AH 2 0.75';
+                        selectedOdds = match.odds.ah2_p1d25;
+                    } else if (button.classList.contains('ah1_p1-btn')) {
+                        selectedOption = 'AH 1 1.0';
+                        selectedOdds = match.odds.ah1_p1;
+                    } else if (button.classList.contains('ah2_p1-btn')) {
+                        selectedOption = 'AH 2 1.0';
+                        selectedOdds = match.odds.ah2_p1;
+                    } else if (button.classList.contains('ah1_p2d75-btn')) {
+                        selectedOption = 'AH 1 1.75';
+                        selectedOdds = match.odds.ah1_p2d75;
+                    } else if (button.classList.contains('ah2_p2d75-btn')) {
+                        selectedOption = 'AH 2 1.75';
+                        selectedOdds = match.odds.ah2_p2d75;
+                    } else if (button.classList.contains('ah1_p2d5-btn')) {
+                        selectedOption = 'AH 1 2.0';
+                        selectedOdds = match.odds.ah1_p2d5;
+                    } else if (button.classList.contains('ah2_p2d5-btn')) {
+                        selectedOption = 'AH 2 2.0';
+                        selectedOdds = match.odds.ah2_p2d5;
+                    } else if (button.classList.contains('ah1_p2d25-btn')) {
+                        selectedOption = 'AH 1 2.25';
+                        selectedOdds = match.odds.ah1_p2d25;
+                    } else if (button.classList.contains('ah2_p2d25-btn')) {
+                        selectedOption = 'AH 2 2.25';
+                        selectedOdds = match.odds.ah2_p2d25;
+                    } else if (button.classList.contains('ah1_p2-btn')) {
+                        selectedOption = 'AH 1 2.5';
+                        selectedOdds = match.odds.ah1_p2;
+                    } else if (button.classList.contains('ah2_p2-btn')) {
+                        selectedOption = 'AH 2 2.5';
+                        selectedOdds = match.odds.ah2_p2;
+                    } else if (button.classList.contains('ah1_p3d75-btn')) {
+                        selectedOption = 'AH 1 3.75';
+                        selectedOdds = match.odds.ah1_p3d75;
+                    } else if (button.classList.contains('ah2_p3d75-btn')) {
+                        selectedOption = 'AH 2 3.75';
+                        selectedOdds = match.odds.ah2_p3d75;
+                    } else if (button.classList.contains('ah1_p3d5-btn')) {
+                        selectedOption = 'AH 1 3.5';
+                        selectedOdds = match.odds.ah1_p3d5;
+                    } else if (button.classList.contains('ah2_p3d5-btn')) {
+                        selectedOption = 'AH 2 3.5';
+                        selectedOdds = match.odds.ah2_p3d5;
+                    } else if (button.classList.contains('ah1_p3d25-btn')) {
+                        selectedOption = 'AH 1 3.25';
+                        selectedOdds = match.odds.ah1_p3d25;
+                    } else if (button.classList.contains('ah2_p3d25-btn')) {
+                        selectedOption = 'AH 2 3.25';
+                        selectedOdds = match.odds.ah2_p3d25;
+                    } else if (button.classList.contains('ah1_p3-btn')) {
+                        selectedOption = 'AH 1 3.0';
+                        selectedOdds = match.odds.ah1_p3;
+                    } else if (button.classList.contains('ah2_p3-btn')) {
+                        selectedOption = 'AH 2 3.0';
+                        selectedOdds = match.odds.ah2_p3;
+                    }
+
+                    // Update the return display
+                    updateReturnDisplay();
+                });
+            });
+        }
+
 
 
         // Function to attach event listeners for OV
