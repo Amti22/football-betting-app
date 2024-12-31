@@ -6,6 +6,128 @@
     <title>Football Betting Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+
+    /* Cart Container */
+    #cart-container {
+        display: flex; /* Use flexbox */
+        flex-direction: column; /* Stack the content vertically */
+        justify-content: flex-start; /* Align content at the top */
+        position: fixed;
+        top: 50%; /* Center vertically */
+        left: 50%; /* Center horizontally */
+        transform: translate(-50%, -50%); /* Offset by half of its own width and height to center */
+        background-color: #2F3340;
+        border: 1px solid #3E4352;
+        border-radius: 10px;
+        padding: 20px;
+        max-width: 800px; /* Same width as other containers */
+        width: 100%; /* Ensure it takes up available width */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        z-index: 9998; /* Ensure it's below the cart icon */
+        height: auto; /* Allow the height to adjust based on the content */
+        overflow-y: auto; /* Enable scrolling if content overflows */
+    }
+
+    /* Cart Content */
+    #cart-container .content {
+        flex-grow: 1; /* Allow this part of the container to take up the available space */
+        overflow-y: auto; /* Scrollable content area */
+        box-shadow: inset 0 -8px 10px rgba(0, 0, 0, 0.1); /* Shadow to indicate more content */
+    }
+
+    /* Buttons (Checkout and Minimize) */
+    #cart-container button {
+        width: 100%; /* Make buttons responsive */
+        max-width: 300px; /* Limit width to avoid oversized buttons on wide screens */
+        background-color: #3E4352;
+        color: #FFFFFF96;
+        border: 2px solid #3E4352;
+        border-radius: 6px;
+        padding: 12px 15px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin-top: 10px;
+        margin-bottom: 20px; /* Ensure some spacing between the button and bottom edge */
+        transition: background-color 0.3s ease; /* Hover effect */
+    }
+
+    #cart-container button:hover {
+        background-color: #4F5660;
+    }
+
+    /* Minimize Button (Styled like Checkout Button) */
+    #minimize-btn {
+        background-color: #3E4352; /* Same as checkout button */
+        color: #FFFFFF96;
+        border: 2px solid #3E4352;
+        border-radius: 6px; /* Match the border radius */
+        padding: 12px 15px; /* Match the padding */
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin-top: 10px;
+        margin-bottom: 20px; /* Ensure some spacing between the button and bottom edge */
+        transition: background-color 0.3s ease; /* Hover effect */
+    }
+
+    #minimize-btn:hover {
+        background-color: #4F5660; /* Hover effect */
+    }
+
+    /* Cart Icon */
+    #cart-icon {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background-color: #2F3340;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: visibility 0s, transform 0.3s ease;
+        z-index: 9999; /* Ensure it stays on top of all elements */
+    }
+
+    #cart-icon.hidden {
+        visibility: hidden;
+    }
+
+    #cart-icon.visible {
+        visibility: visible;
+    }
+
+    /* Checkout Button */
+    #cart-container button.checkout-btn {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #3E4352;
+        color: #FFFFFF96;
+        border: 2px solid #3E4352;
+        border-radius: 6px;
+        padding: 12px 15px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    #cart-icon svg {
+        fill: white;
+        transition: fill 0.3s ease; /* Smooth color transition for the icon */
+    }
+
+    #cart-icon:hover svg {
+        fill: #D9534F; /* Change color on hover */
+    }
+
+
         .sport-dropdown {
             padding: 10px;
             font-size: 1rem;
@@ -278,12 +400,229 @@
     <option value="">Select Sport</option>
 </select>
 
+<div id="cart-icon" style="position: fixed; bottom: 10px; right: 10px; background-color: #2F3340; border-radius: 50%; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <span style="color: #fff; font-size: 24px;">🛒</span>
+    <!-- Notification Badge (Initially hidden) -->
+    <span id="cart-badge" style="position: absolute; top: -5px; right: -5px; background-color: #D9534F; color: white; border-radius: 50%; width: 20px; height: 20px; display: none; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; text-align: center;">
+        0
+    </span>
+</div>
+
+
+<!-- Cart Container (Initially Hidden) -->
+<div id="cart-container" style="position: fixed; bottom: 10px; right: 10px; background-color: #2F3340; border: 1px solid #3E4352; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; display: none; width: 300px;">
+    <h3 style="color: #FFFFFF96; font-weight: 700;">Your Cart</h3>
+    <ul id="cart-list" style="list-style-type: none; padding-left: 0; color: #FFFFFF96;"></ul>
+    <div style="margin-top: 10px;">
+        <label for="bet-amount" style="color: #FFFFFF96; font-size: 0.9rem;">Bet Amount:</label>
+        <input id="bet-amount" type="number" min="0" step="0.01" value="1" style="margin-left: 10px; width: 80px; border-radius: 4px; border: 1px solid #3E4352; padding: 4px;">
+    </div>
+    <div id="total-odds" style="color: #FFFFFF96; margin-top: 10px;">Total Odds: 1.00</div>
+    <div id="potential-return" style="color: #FFFFFF96; margin-top: 10px;">Potential Return: $0.00</div>
+    <div id="membership-return" class="membership-return" style="text-align: right; font-weight: 600; color: var(--Overline); margin-top: 15px; display: block;">Membership Return: $0.00</div>
+    <button id="checkout-btn" style="background-color: #3E4352; color: #FFFFFF96; border: 2px solid #3E4352; border-radius: 6px; padding: 12px 15px; font-weight: 600; cursor: pointer; font-size: 0.9rem; margin-top: 10px;">Checkout</button>
+    <button id="minimize-btn" style="background-color: #D9534F; color: white; border: none; border-radius: 6px; cursor: pointer; padding: 4px 8px; font-size: 0.8rem; margin-top: 10px;">Minimize</button>
+</div>
+
+
+
+
 <div class="container">
     <h1 class="section-title"></h1>
     <div id="matches-list"></div>
 </div>
 
 <script>
+    let cartItems = []; // Array to store individual bets
+// Function to update the cart with a new bet
+function updateCart(betDetails) {
+    const cartContainer = document.getElementById('cart-container');
+    const cartList = document.getElementById('cart-list');
+    const cartBadge = document.getElementById('cart-badge'); // Get the notification badge element
+
+    // Create a new list item for the bet placed
+    const listItem = document.createElement('li');
+    listItem.style.marginBottom = '10px';
+
+    // Add bet details text
+    const betText = document.createElement('span');
+    betText.textContent = `${betDetails.match} - ${betDetails.selectedOption} odds ${betDetails.selectedOdds}`;
+    listItem.appendChild(betText);
+
+    // Create the remove button for this bet
+    const removeButton = document.createElement('button');
+    removeButton.textContent = 'Remove';
+    removeButton.style.backgroundColor = '#D9534F';
+    removeButton.style.color = 'white';
+    removeButton.style.border = 'none';
+    removeButton.style.borderRadius = '6px';
+    removeButton.style.cursor = 'pointer';
+    removeButton.style.padding = '4px 8px';
+    removeButton.style.fontSize = '0.8rem';
+    removeButton.style.marginLeft = '10px';
+
+    // Add event listener to remove the bet when the remove button is clicked
+    removeButton.addEventListener('click', () => {
+        removeBet(listItem, betDetails);
+    });
+
+    // Append the remove button to the list item
+    listItem.appendChild(removeButton);
+
+    // Add the new bet to the cart
+    cartList.appendChild(listItem);
+
+    // Add the bet to the cartItems array
+    cartItems.push(betDetails);
+
+    // Recalculate total odds when a new bet is added
+    totalOdds = cartItems.reduce((acc, bet) => acc * bet.selectedOdds, 1); // Reset total odds based on all bets
+
+    // Update the UI
+    updateCartUI();
+
+    // Update the cart badge to reflect the number of items in the cart
+    cartBadge.textContent = cartItems.length; // Set badge count to the number of items
+    cartBadge.style.display = 'inline-block'; // Show the badge
+}
+
+// Function to remove a bet from the cart
+function removeBet(listItem, betDetails) {
+    // Remove the bet from the cartItems array
+    cartItems = cartItems.filter(item => item !== betDetails);
+
+    // Recalculate total odds after removing the bet
+    totalOdds = cartItems.reduce((acc, bet) => acc * bet.selectedOdds, 1); // Recalculate total odds
+
+    // Remove the list item from the DOM
+    listItem.remove();
+
+    // Update the UI
+    updateCartUI();
+
+    // Update the cart badge to reflect the number of items left
+    const cartBadge = document.getElementById('cart-badge');
+    cartBadge.textContent = cartItems.length; // Update badge count
+    if (cartItems.length === 0) {
+        cartBadge.style.display = 'none'; // Hide the badge if no items are left
+    }
+}
+
+// Function to update the cart UI
+function updateCartUI() {
+    const totalOddsDisplay = document.getElementById('total-odds');
+    const potentialReturnDisplay = document.getElementById('potential-return');
+    const membershipReturnDisplay = document.getElementById('membership-return');
+    const wagerAmount = parseFloat(document.getElementById('bet-amount').value) || 0;
+
+    // If no items in cart, set total odds to 1
+    if (cartItems.length === 0) {
+        totalOdds = 0;  // Set total odds to 1 when there are no items in the cart
+    }
+
+    // Update the total odds display
+    totalOddsDisplay.textContent = `Total Odds: ${totalOdds.toFixed(2)}`;
+
+    // Calculate the potential return (if total odds is 0, return should also be 0)
+    const returnAmount = wagerAmount * totalOdds;
+    potentialReturnDisplay.textContent = `Potential Return: $${returnAmount.toFixed(2)}`;
+
+    // Calculate the membership return (double the potential return)
+    const membershipReturnAmount = returnAmount * 2;
+    membershipReturnDisplay.textContent = `Membership Return: $${membershipReturnAmount.toFixed(2)}`;
+}
+
+// Function to handle bet amount input change and update potential return
+document.getElementById('bet-amount').addEventListener('input', function() {
+    updateCartUI(); // Update UI when bet amount changes
+});
+
+// Function to update the total amount after every change
+function updateTotalAmount() {
+    const totalAmountUSD = cartItems.reduce((total, bet) => total + (bet.betAmountUSD || 0), 0);
+    const totalAmountGBP = (totalAmountUSD * 0.80).toFixed(2); // Convert to GBP if necessary
+
+    // Update the total amount display dynamically
+    document.getElementById('total-amount').textContent = `Total: $${totalAmountUSD.toFixed(2)} (approx. £${totalAmountGBP} GBP)`;
+}
+
+// Handle cart icon click to toggle the cart container visibility
+document.getElementById('cart-icon').addEventListener('click', () => {
+    const cartContainer = document.getElementById('cart-container');
+    const cartIcon = document.getElementById('cart-icon');
+
+    // Toggle the cart visibility
+    if (cartContainer.style.display === 'none' || !cartContainer.style.display) {
+        cartContainer.style.display = 'block'; // Show the cart container
+        cartIcon.classList.add('hidden'); // Hide the cart icon
+        cartIcon.classList.remove('visible');
+    } else {
+        cartContainer.style.display = 'none'; // Hide the cart container
+        cartIcon.classList.remove('hidden'); // Show the cart icon
+        cartIcon.classList.add('visible');
+    }
+});
+
+// Handle minimize button click to hide the cart and show the icon again
+document.getElementById('minimize-btn').addEventListener('click', () => {
+    const cartContainer = document.getElementById('cart-container');
+    const cartIcon = document.getElementById('cart-icon');
+
+    // Hide the expanded cart container
+    cartContainer.style.display = 'none';
+
+    // Show the cart icon again and make it visible
+    cartIcon.classList.remove('hidden');
+    cartIcon.classList.add('visible');
+});
+
+// Handle the checkout button click (only one definition)
+document.getElementById('checkout-btn').addEventListener('click', () => {
+    if (cartItems.length === 0) {
+        console.log('Your cart is empty. Please add items before checking out.');
+        return;
+    }
+
+    // Calculate the total bet amount and potential return
+    const wagerAmount = parseFloat(document.getElementById('bet-amount').value) || 0;
+    const potentialReturn = wagerAmount * totalOdds;
+    const totalAmountGBP = (wagerAmount * 0.80).toFixed(2); // Convert to GBP if necessary
+
+    // Prepare the checkout details message
+    const betDetailsMessage = cartItems.map(bet => {
+        return `${bet.match} - ${bet.selectedOption} odds ${bet.selectedOdds}`;
+    }).join('\n');
+
+    const checkoutMessage = {
+        content: `**New Bet Checkout**\n\n${betDetailsMessage}\n\nWager Amount: $${wagerAmount.toFixed(2)}\nPotential Return: $${potentialReturn.toFixed(2)}\n(approx. £${totalAmountGBP} GBP)`,
+    };
+
+    // Send the checkout details to the server via the /save_bet endpoint
+    fetch('/save_bet', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(checkoutMessage),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Successfully sent to Discord:', data);
+    })
+    .catch(error => {
+        console.error('Error sending to Discord:', error);
+    });
+
+    // Open the PayPal link in the same time as the request
+    const paypalLink = `https://www.paypal.com/paypalme/DoubleClubChannel/${totalAmountGBP}?currency_code=GBP`;
+    window.open(paypalLink, '_blank');
+});
+
+
+
+
+
+
     async function fetchSports() {
         try {
             const response = await fetch('/sports');
@@ -372,7 +711,7 @@ function renderMatches(matches) {
                     ${homeOdds ? `${match.formatted_date}` : ''}
                 </div>
                 <div class="bet-container">
-                    <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1">
+                    <input type="number" class="bet-amount" placeholder="Enter Bet Amount" min="1" value="1" style="display: none;">
                     <div class="button-group">
                         ${homeOdds ? `<button class="home-btn">Home: ${match.odds.home_odds}</button>` : ''}
                         ${drawOdds ? `<button class="draw-btn">Draw: ${match.odds.draw_odds}</button>` : ''}
@@ -384,12 +723,11 @@ function renderMatches(matches) {
                         <option value="BTS">Both Teams Score</option>
                         <option value="DNB">Draw No Bet</option>
                         <option value="DC">Double Chance</option>
-                        <option value="OV">Over/Under</option>
-                        <option value="AH">Asian Handicap</option>
                     </select>
                 </div>
-                <div class="return-display">Expected Return: $0</div>
-                <div class="membership-return">Double-Club Membership Return: $0</div>
+                <div class="return-display" style="display: none;">Expected Return: $0</div>
+                <div class="membership-return" style="display: none;">Double-Club Membership Return: $0</div>
+
                 <button class="buy-button" style="display: none;">Place Bet</button>
             `;
 
@@ -474,226 +812,6 @@ function renderMatches(matches) {
         });
 
 
-        // Handle AH buttons (AH 1 -3.75, AH 2 -3.75, etc.)
-        matchDiv.querySelectorAll('.ah-1m3d75-btn, .ah-2m3d75-btn, .ah-1m3d5-btn, .ah-2m3d5-btn, .ah-1m3d25-btn, .ah-2m3d25-btn, .ah-1m3-btn, .ah-2m3-btn, .ah-1m2d75-btn, .ah-2m2d75-btn, .ah-1m2d5-btn, .ah-2m2d5-btn, .ah-1m2d25-btn, .ah-2m2d25-btn, .ah-1m2-btn, .ah-2m2-btn, .ah-1m1d75-btn, .ah-2m1d75-btn, .ah-1m1d5-btn, .ah-2m1d5-btn, .ah-1m1d25-btn, .ah-2m1d25-btn, .ah-1m1-btn, .ah-2m1-btn, .ah-1m0d75-btn, .ah-2m0d75-btn, .ah-1m0d5-btn, .ah-2m0d5-btn, .ah-1m0d25-btn, .ah-2m0d25-btn, .ah-1m0-btn, .ah-2m0-btn, .ah-1p1d75-btn, .ah-2p1d75-btn, .ah-1p1d5-btn, .ah-2p1d5-btn, .ah-1p1d25-btn, .ah-2p1d25-btn, .ah-1p1-btn, .ah-2p1-btn, .ah-1p2d75-btn, .ah-2p2d75-btn, .ah-1p2d5-btn, .ah-2p2d5-btn, .ah-1p2d25-btn, .ah-2p2d25-btn, .ah-1p2-btn, .ah-2p2-btn, .ah-1p3d75-btn, .ah-2p3d75-btn, .ah-1p3d5-btn, .ah-2p3d5-btn, .ah-1p3d25-btn, .ah-2p3d25-btn, .ah-1p3-btn, .ah-2p3-btn')
-        .forEach(button => {
-            button.addEventListener('click', () => {
-                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-
-                // Determine which button was clicked and set the selected option and odds
-                if (button.classList.contains('ah-1m3d75-btn')) {
-                    selectedOption = 'ah1_m3d75';
-                    selectedOdds = match.odds.ah1_m3d75;
-                } else if (button.classList.contains('ah-2m3d75-btn')) {
-                    selectedOption = 'ah2_m3d75';
-                    selectedOdds = match.odds.ah2_m3d75;
-                } else if (button.classList.contains('ah-1m3d5-btn')) {
-                    selectedOption = 'ah1_m3d5';
-                    selectedOdds = match.odds.ah1_m3d5;
-                } else if (button.classList.contains('ah-2m3d5-btn')) {
-                    selectedOption = 'ah2_m3d5';
-                    selectedOdds = match.odds.ah2_m3d5;
-                } else if (button.classList.contains('ah-1m3d25-btn')) {
-                    selectedOption = 'ah1_m3d25';
-                    selectedOdds = match.odds.ah1_m3d25;
-                } else if (button.classList.contains('ah-2m3d25-btn')) {
-                    selectedOption = 'ah2_m3d25';
-                    selectedOdds = match.odds.ah2_m3d25;
-                } else if (button.classList.contains('ah-1m3-btn')) {
-                    selectedOption = 'ah1_m3';
-                    selectedOdds = match.odds.ah1_m3;
-                } else if (button.classList.contains('ah-2m3-btn')) {
-                    selectedOption = 'ah2_m3';
-                    selectedOdds = match.odds.ah2_m3;
-                } else if (button.classList.contains('ah-1m2d75-btn')) {
-                    selectedOption = 'ah1_m2d75';
-                    selectedOdds = match.odds.ah1_m2d75;
-                } else if (button.classList.contains('ah-2m2d75-btn')) {
-                    selectedOption = 'ah2_m2d75';
-                    selectedOdds = match.odds.ah2_m2d75;
-                } else if (button.classList.contains('ah-1m2d5-btn')) {
-                    selectedOption = 'ah1_m2d5';
-                    selectedOdds = match.odds.ah1_m2d5;
-                } else if (button.classList.contains('ah-2m2d5-btn')) {
-                    selectedOption = 'ah2_m2d5';
-                    selectedOdds = match.odds.ah2_m2d5;
-                } else if (button.classList.contains('ah-1m2d25-btn')) {
-                    selectedOption = 'ah1_m2d25';
-                    selectedOdds = match.odds.ah1_m2d25;
-                } else if (button.classList.contains('ah-2m2d25-btn')) {
-                    selectedOption = 'ah2_m2d25';
-                    selectedOdds = match.odds.ah2_m2d25;
-                } else if (button.classList.contains('ah-1m2-btn')) {
-                    selectedOption = 'ah1_m2';
-                    selectedOdds = match.odds.ah1_m2;
-                } else if (button.classList.contains('ah-2m2-btn')) {
-                    selectedOption = 'ah2_m2';
-                    selectedOdds = match.odds.ah2_m2;
-                } else if (button.classList.contains('ah-1m1d75-btn')) {
-                    selectedOption = 'ah1_m1d75';
-                    selectedOdds = match.odds.ah1_m1d75;
-                } else if (button.classList.contains('ah-2m1d75-btn')) {
-                    selectedOption = 'ah2_m1d75';
-                    selectedOdds = match.odds.ah2_m1d75;
-                } else if (button.classList.contains('ah-1m1d5-btn')) {
-                    selectedOption = 'ah1_m1d5';
-                    selectedOdds = match.odds.ah1_m1d5;
-                } else if (button.classList.contains('ah-2m1d5-btn')) {
-                    selectedOption = 'ah2_m1d5';
-                    selectedOdds = match.odds.ah2_m1d5;
-                } else if (button.classList.contains('ah-1m1d25-btn')) {
-                    selectedOption = 'ah1_m1d25';
-                    selectedOdds = match.odds.ah1_m1d25;
-                } else if (button.classList.contains('ah-2m1d25-btn')) {
-                    selectedOption = 'ah2_m1d25';
-                    selectedOdds = match.odds.ah2_m1d25;
-                } else if (button.classList.contains('ah-1m1-btn')) {
-                    selectedOption = 'ah1_m1';
-                    selectedOdds = match.odds.ah1_m1;
-                } else if (button.classList.contains('ah-2m1-btn')) {
-                    selectedOption = 'ah2_m1';
-                    selectedOdds = match.odds.ah2_m1;
-                } else if (button.classList.contains('ah-1m0d75-btn')) {
-                    selectedOption = 'ah1_m0d75';
-                    selectedOdds = match.odds.ah1_m0d75;
-                } else if (button.classList.contains('ah-2m0d75-btn')) {
-                    selectedOption = 'ah2_m0d75';
-                    selectedOdds = match.odds.ah2_m0d75;
-                } else if (button.classList.contains('ah-1m0d5-btn')) {
-                    selectedOption = 'ah1_m0d5';
-                    selectedOdds = match.odds.ah1_m0d5;
-                } else if (button.classList.contains('ah-2m0d5-btn')) {
-                    selectedOption = 'ah2_m0d5';
-                    selectedOdds = match.odds.ah2_m0d5;
-                } else if (button.classList.contains('ah-1m0d25-btn')) {
-                    selectedOption = 'ah1_m0d25';
-                    selectedOdds = match.odds.ah1_m0d25;
-                } else if (button.classList.contains('ah-2m0d25-btn')) {
-                    selectedOption = 'ah2_m0d25';
-                    selectedOdds = match.odds.ah2_m0d25;
-                } else if (button.classList.contains('ah-1m0-btn')) {
-                    selectedOption = 'ah1_m0';
-                    selectedOdds = match.odds.ah1_m0;
-                } else if (button.classList.contains('ah-2m0-btn')) {
-                    selectedOption = 'ah2_m0';
-                    selectedOdds = match.odds.ah2_m0;
-                } else if (button.classList.contains('ah-1p1d75-btn')) {
-                    selectedOption = 'ah1_p1d75';
-                    selectedOdds = match.odds.ah1_p1d75;
-                } else if (button.classList.contains('ah-2p1d75-btn')) {
-                    selectedOption = 'ah2_p1d75';
-                    selectedOdds = match.odds.ah2_p1d75;
-                } else if (button.classList.contains('ah-1p1d5-btn')) {
-                    selectedOption = 'ah1_p1d5';
-                    selectedOdds = match.odds.ah1_p1d5;
-                } else if (button.classList.contains('ah-2p1d5-btn')) {
-                    selectedOption = 'ah2_p1d5';
-                    selectedOdds = match.odds.ah2_p1d5;
-                } else if (button.classList.contains('ah-1p1d25-btn')) {
-                    selectedOption = 'ah1_p1d25';
-                    selectedOdds = match.odds.ah1_p1d25;
-                } else if (button.classList.contains('ah-2p1d25-btn')) {
-                    selectedOption = 'ah2_p1d25';
-                    selectedOdds = match.odds.ah2_p1d25;
-                } else if (button.classList.contains('ah-1p1-btn')) {
-                    selectedOption = 'ah1_p1';
-                    selectedOdds = match.odds.ah1_p1;
-                } else if (button.classList.contains('ah-2p1-btn')) {
-                    selectedOption = 'ah2_p1';
-                    selectedOdds = match.odds.ah2_p1;
-                } else if (button.classList.contains('ah-1p2d75-btn')) {
-                    selectedOption = 'ah1_p2d75';
-                    selectedOdds = match.odds.ah1_p2d75;
-                } else if (button.classList.contains('ah-2p2d75-btn')) {
-                    selectedOption = 'ah2_p2d75';
-                    selectedOdds = match.odds.ah2_p2d75;
-                } else if (button.classList.contains('ah-1p2d5-btn')) {
-                    selectedOption = 'ah1_p2d5';
-                    selectedOdds = match.odds.ah1_p2d5;
-                } else if (button.classList.contains('ah-2p2d5-btn')) {
-                    selectedOption = 'ah2_p2d5';
-                    selectedOdds = match.odds.ah2_p2d5;
-                } else if (button.classList.contains('ah-1p2d25-btn')) {
-                    selectedOption = 'ah1_p2d25';
-                    selectedOdds = match.odds.ah1_p2d25;
-                } else if (button.classList.contains('ah-2p2d25-btn')) {
-                    selectedOption = 'ah2_p2d25';
-                    selectedOdds = match.odds.ah2_p2d25;
-                } else if (button.classList.contains('ah-1p2-btn')) {
-                    selectedOption = 'ah1_p2';
-                    selectedOdds = match.odds.ah1_p2;
-                } else if (button.classList.contains('ah-2p2-btn')) {
-                    selectedOption = 'ah2_p2';
-                    selectedOdds = match.odds.ah2_p2;
-                } else if (button.classList.contains('ah-1p3d75-btn')) {
-                    selectedOption = 'ah1_p3d75';
-                    selectedOdds = match.odds.ah1_p3d75;
-                } else if (button.classList.contains('ah-2p3d75-btn')) {
-                    selectedOption = 'ah2_p3d75';
-                    selectedOdds = match.odds.ah2_p3d75;
-                } else if (button.classList.contains('ah-1p3d5-btn')) {
-                    selectedOption = 'ah1_p3d5';
-                    selectedOdds = match.odds.ah1_p3d5;
-                } else if (button.classList.contains('ah-2p3d5-btn')) {
-                    selectedOption = 'ah2_p3d5';
-                    selectedOdds = match.odds.ah2_p3d5;
-                } else if (button.classList.contains('ah-1p3d25-btn')) {
-                    selectedOption = 'ah1_p3d25';
-                    selectedOdds = match.odds.ah1_p3d25;
-                } else if (button.classList.contains('ah-2p3d25-btn')) {
-                    selectedOption = 'ah2_p3d25';
-                    selectedOdds = match.odds.ah2_p3d25;
-                } else if (button.classList.contains('ah-1p3-btn')) {
-                    selectedOption = 'ah1_p3';
-                    selectedOdds = match.odds.ah1_p3;
-                } else if (button.classList.contains('ah-2p3-btn')) {
-                    selectedOption = 'ah2_p3';
-                    selectedOdds = match.odds.ah2_p3;
-                }
-
-                // Update the display
-                updateReturnDisplay();
-            });
-        });
-
-
-        // Handle 3 buttons for OV
-        matchDiv.querySelectorAll('.ov-1d5-btn, .ov-2d5-btn, .ov-3d5-btn, .un-1d5-btn, .un-2d5-btn, .un-3d5-btn ').forEach(button => {
-            button.addEventListener('click', () => {
-                matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-
-                if (button.classList.contains('ov-1d5-btn')) {
-                    selectedOption = '1d5';
-                    selectedOdds = match.odds.ov_1d5;
-                } else if (button.classList.contains('ov-2d5-btn')) {
-                    selectedOption = '2d5';
-                    selectedOdds = match.odds.ov_2d5;
-                }else if (button.classList.contains('ov-3d5-btn')) {
-                    selectedOption = '3d5';
-                    selectedOdds = match.odds.ov_3d5;
-
-                }else if (button.classList.contains('un-1d5-btn')) {
-                    selectedOption = 'un1d5';
-                    selectedOdds = match.odds.un_1d5;
-
-
-                }else if (button.classList.contains('un-2d5-btn')) {
-                    selectedOption = 'un2d5';
-                    selectedOdds = match.odds.un_2d5;
-
-
-                }else if (button.classList.contains('un-3d5-btn')) {
-                    selectedOption = 'un3d5';
-                    selectedOdds = match.odds.un_3d5;
-                }
-
-                updateReturnDisplay();
-            });
-        });
-
-
 
 
         // Handle Home, Draw, Away buttons
@@ -717,62 +835,40 @@ function renderMatches(matches) {
             });
         });
 
-        buyButton.addEventListener('click', () => {
-            if (!selectedOption || !selectedOdds) {
-                alert('Please select an option before buying.');
-                return;
-            }
+// Modify the buyButton click event to add the bet to the cart
+buyButton.addEventListener('click', () => {
+    if (!selectedOption || !selectedOdds) {
+        console.log('Please select an option before buying.');
+        return;
+    }
 
-            const betAmountUSD = parseFloat(betInput.value) || 0;
-            if (betAmountUSD <= 0) {
-                alert('Please enter a valid bet amount.');
-                return;
-            }
+    const betAmountUSD = parseFloat(betInput.value) || 0;
+    if (betAmountUSD <= 0) {
+        console.log('Please enter a valid bet amount.');
+        return;
+    }
 
-            const matchDate = match.formatted_date;
-            const homeTeam = match.home_team;
-            const awayTeam = match.away_team;
+    const matchDate = match.formatted_date;
+    const homeTeam = match.home_team;
+    const awayTeam = match.away_team;
+    const matchName = `${homeTeam} vs ${awayTeam}`;
 
-            const exchangeRate = 0.80;
-            const betAmountGBP = (betAmountUSD * exchangeRate).toFixed(2);
+    const exchangeRate = 0.80;
+    const betAmountGBP = (betAmountUSD * exchangeRate).toFixed(2);
 
-            const confirmMessage = `Bet placed on ${selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)} at odds ${selectedOdds} with $${betAmountUSD} (approx. £${betAmountGBP} GBP).\n\nMatch: ${homeTeam} vs ${awayTeam}\nDate: ${matchDate}\n\nClick OK to proceed to payment.`;
+    // Automatically proceed to save the bet to the cart without confirmation
+    updateCart({
+        match: matchName,
+        selectedOption,
+        selectedOdds,
+        betAmountUSD,
+    });
 
-            if (confirm(confirmMessage)) {
-                const paypalLink = `https://www.paypal.com/paypalme/DoubleClubChannel/${betAmountUSD.toFixed(2)}?currency_code=USD`;
-                window.open(paypalLink, '_blank');
+    // Optionally, log the action to the console
+    console.log(`Bet placed on ${selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)} at odds ${selectedOdds} with $${betAmountUSD} (approx. £${betAmountGBP} GBP).\n\nMatch: ${homeTeam} vs ${awayTeam}\nDate: ${matchDate}`);
+});
 
-                // Send the bet details to the server to save in orders.txt
-                fetch('/save_bet', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        selectedOption,
-                        selectedOdds,
-                        betAmountUSD,
-                        betAmountGBP,
-                        homeTeam,
-                        awayTeam,
-                        matchDate,
-                        currentDateTime: new Date().toISOString() // Add the current timestamp
-                    })
-                })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('Bet details saved successfully');
-                    } else {
-                        console.error('Failed to save bet details');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error saving bet details:', error);
-                });
-            } else {
-                alert("Payment canceled.");
-            }
-        });
+
 
         function handleBetOptionChange() {
             const selectedBetOption = betOptionDropdown.value;
@@ -820,94 +916,6 @@ function renderMatches(matches) {
                 // Reattach event listeners for the new 1x/12/x2 buttons
                 attachDCListeners(matchDiv);
 
-            } else if (selectedBetOption === 'AH') {
-
-                matchDiv.querySelector('.button-group').innerHTML = `
-                    <button class="ah1_m3d75-btn">AH 1 -3.75: ${match.odds.ah1_m3d75}</button>
-                    <button class="ah2_m3d75-btn">AH 2 -3.75: ${match.odds.ah2_m3d75}</button>
-                    <button class="ah1_m3d5-btn">AH 1 -3.5: ${match.odds.ah1_m3d5}</button>
-                    <button class="ah2_m3d5-btn">AH 2 -3.5: ${match.odds.ah2_m3d5}</button>
-                    <button class="ah1_m3d25-btn">AH 1 -3.25: ${match.odds.ah1_m3d25}</button>
-                    <button class="ah2_m3d25-btn">AH 2 -3.25: ${match.odds.ah2_m3d25}</button>
-                    <button class="ah1_m3-btn">AH 1 -3.0: ${match.odds.ah1_m3}</button>
-                    <button class="ah2_m3-btn">AH 2 -3.0: ${match.odds.ah2_m3}</button>
-                    <button class="ah1_m2d75-btn">AH 1 -2.75: ${match.odds.ah1_m2d75}</button>
-                    <button class="ah2_m2d75-btn">AH 2 -2.75: ${match.odds.ah2_m2d75}</button>
-                    <button class="ah1_m2d5-btn">AH 1 -2.5: ${match.odds.ah1_m2d5}</button>
-                    <button class="ah2_m2d5-btn">AH 2 -2.5: ${match.odds.ah2_m2d5}</button>
-                    <button class="ah1_m2d25-btn">AH 1 -2.25: ${match.odds.ah1_m2d25}</button>
-                    <button class="ah2_m2d25-btn">AH 2 -2.25: ${match.odds.ah2_m2d25}</button>
-                    <button class="ah1_m2-btn">AH 1 -2.0: ${match.odds.ah1_m2}</button>
-                    <button class="ah2_m2-btn">AH 2 -2.0: ${match.odds.ah2_m2}</button>
-                    <button class="ah1_m1d75-btn">AH 1 -1.75: ${match.odds.ah1_m1d75}</button>
-                    <button class="ah2_m1d75-btn">AH 2 -1.75: ${match.odds.ah2_m1d75}</button>
-                    <button class="ah1_m1d5-btn">AH 1 -1.5: ${match.odds.ah1_m1d5}</button>
-                    <button class="ah2_m1d5-btn">AH 2 -1.5: ${match.odds.ah2_m1d5}</button>
-                    <button class="ah1_m1d25-btn">AH 1 -1.25: ${match.odds.ah1_m1d25}</button>
-                    <button class="ah2_m1d25-btn">AH 2 -1.25: ${match.odds.ah2_m1d25}</button>
-                    <button class="ah1_m1-btn">AH 1 -1.0: ${match.odds.ah1_m1}</button>
-                    <button class="ah2_m1-btn">AH 2 -1.0: ${match.odds.ah2_m1}</button>
-                    <button class="ah1_m0d75-btn">AH 1 -0.75: ${match.odds.ah1_m0d75}</button>
-                    <button class="ah2_m0d75-btn">AH 2 -0.75: ${match.odds.ah2_m0d75}</button>
-                    <button class="ah1_m0d5-btn">AH 1 -0.5: ${match.odds.ah1_m0d5}</button>
-                    <button class="ah2_m0d5-btn">AH 2 -0.5: ${match.odds.ah2_m0d5}</button>
-                    <button class="ah1_m0d25-btn">AH 1 -0.25: ${match.odds.ah1_m0d25}</button>
-                    <button class="ah2_m0d25-btn">AH 2 -0.25: ${match.odds.ah2_m0d25}</button>
-                    <button class="ah1_m0-btn">AH 1 0.0: ${match.odds.ah1_m0}</button>
-                    <button class="ah2_m0-btn">AH 2 0.0: ${match.odds.ah2_m0}</button>
-                    <button class="ah1_p1d75-btn">AH 1 0.25: ${match.odds.ah1_p1d75}</button>
-                    <button class="ah2_p1d75-btn">AH 2 0.25: ${match.odds.ah2_p1d75}</button>
-                    <button class="ah1_p1d5-btn">AH 1 0.5: ${match.odds.ah1_p1d5}</button>
-                    <button class="ah2_p1d5-btn">AH 2 0.5: ${match.odds.ah2_p1d5}</button>
-                    <button class="ah1_p1d25-btn">AH 1 0.75: ${match.odds.ah1_p1d25}</button>
-                    <button class="ah2_p1d25-btn">AH 2 0.75: ${match.odds.ah2_p1d25}</button>
-                    <button class="ah1_p1-btn">AH 1 1.0: ${match.odds.ah1_p1}</button>
-                    <button class="ah2_p1-btn">AH 2 1.0: ${match.odds.ah2_p1}</button>
-                    <button class="ah1_p2d75-btn">AH 1 1.75: ${match.odds.ah1_p2d75}</button>
-                    <button class="ah2_p2d75-btn">AH 2 1.75: ${match.odds.ah2_p2d75}</button>
-                    <button class="ah1_p2d5-btn">AH 1 2.0: ${match.odds.ah1_p2d5}</button>
-                    <button class="ah2_p2d5-btn">AH 2 2.0: ${match.odds.ah2_p2d5}</button>
-                    <button class="ah1_p2d25-btn">AH 1 2.25: ${match.odds.ah1_p2d25}</button>
-                    <button class="ah2_p2d25-btn">AH 2 2.25: ${match.odds.ah2_p2d25}</button>
-                    <button class="ah1_p2-btn">AH 1 2.5: ${match.odds.ah1_p2}</button>
-                    <button class="ah2_p2-btn">AH 2 2.5: ${match.odds.ah2_p2}</button>
-                    <button class="ah1_p3d75-btn">AH 1 2.75: ${match.odds.ah1_p3d75}</button>
-                    <button class="ah2_p3d75-btn">AH 2 2.75: ${match.odds.ah2_p3d75}</button>
-                    <button class="ah1_p3d5-btn">AH 1 3.0: ${match.odds.ah1_p3d5}</button>
-                    <button class="ah2_p3d5-btn">AH 2 3.0: ${match.odds.ah2_p3d5}</button>
-                    <button class="ah1_p3d25-btn">AH 1 3.25: ${match.odds.ah1_p3d25}</button>
-                    <button class="ah2_p3d25-btn">AH 2 3.25: ${match.odds.ah2_p3d25}</button>
-                    <button class="ah1_p3-btn">AH 1 3.5: ${match.odds.ah1_p3}</button>
-                    <button class="ah2_p3-btn">AH 2 3.5: ${match.odds.ah2_p3}</button>
-
-                 `;
-
-                // Clear previous odds as we're switching bet types
-                selectedOdds = null;
-
-                // Reattach event listeners for the new AH buttons
-                attachAHListeners(matchDiv);
-
-
-
-
-            } else if (selectedBetOption === 'OV') {
-                // Replace the current buttons with OV ones
-                matchDiv.querySelector('.button-group').innerHTML = `
-                    <button class="ov-1d5-btn">Over 1.5: ${match.odds.ov_1d5}</button>
-                    <button class="ov-2d5-btn">Over 2.5: ${match.odds.ov_2d5}</button>
-                    <button class="ov-3d5-btn">Over 3.5: ${match.odds.ov_3d5}</button>
-                    <button class="un-1d5-btn">Under 1.5: ${match.odds.un_1d5}</button>
-                    <button class="un-2d5-btn">Under 2.5: ${match.odds.un_2d5}</button>
-                    <button class="un-3d5-btn">Under 3.5: ${match.odds.un_3d5}</button>
-
-                `;
-
-                // Clear previous odds as we're switching bet types
-                selectedOdds = null;
-
-                // Reattach event listeners for the new OV buttons
-                attachOVListeners(matchDiv);
 
 
             } else {
@@ -1026,234 +1034,6 @@ function renderMatches(matches) {
         }
 
 
-        // Function to attach event listeners for AH buttons
-        function attachAHListeners(matchDiv) {
-            // Select all AH buttons for different odds values
-            matchDiv.querySelectorAll('.ah1_m3d75-btn, .ah2_m3d75-btn, .ah1_m3d5-btn, .ah2_m3d5-btn, .ah1_m3d25-btn, .ah2_m3d25-btn, .ah1_m3-btn, .ah2_m3-btn, .ah1_m2d75-btn, .ah2_m2d75-btn, .ah1_m2d5-btn, .ah2_m2d5-btn, .ah1_m2d25-btn, .ah2_m2d25-btn, .ah1_m2-btn, .ah2_m2-btn, .ah1_m1d75-btn, .ah2_m1d75-btn, .ah1_m1d5-btn, .ah2_m1d5-btn, .ah1_m1d25-btn, .ah2_m1d25-btn, .ah1_m1-btn, .ah2_m1-btn, .ah1_m0d75-btn, .ah2_m0d75-btn, .ah1_m0d5-btn, .ah2_m0d5-btn, .ah1_m0d25-btn, .ah2_m0d25-btn, .ah1_m0-btn, .ah2_m0-btn, .ah1_p1d75-btn, .ah2_p1d75-btn, .ah1_p1d5-btn, .ah2_p1d5-btn, .ah1_p1d25-btn, .ah2_p1d25-btn, .ah1_p1-btn, .ah2_p1-btn, .ah1_p2d75-btn, .ah2_p2d75-btn, .ah1_p2d5-btn, .ah2_p2d5-btn, .ah1_p2d25-btn, .ah2_p2d25-btn, .ah1_p2-btn, .ah2_p2-btn, .ah1_p3d75-btn, .ah2_p3d75-btn, .ah1_p3d5-btn, .ah2_p3d5-btn, .ah1_p3d25-btn, .ah2_p3d25-btn, .ah1_p3-btn, .ah2_p3-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    // Remove active class from all buttons in the button group
-                    matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
-                    // Add active class to the clicked button
-                    button.classList.add('active');
-
-                    // Determine which button was clicked and set the corresponding selected option and odds
-                    if (button.classList.contains('ah1_m3d75-btn')) {
-                        selectedOption = 'AH 1 -3.75';
-                        selectedOdds = match.odds.ah1_m3d75;
-                    } else if (button.classList.contains('ah2_m3d75-btn')) {
-                        selectedOption = 'AH 2 -3.75';
-                        selectedOdds = match.odds.ah2_m3d75;
-                    } else if (button.classList.contains('ah1_m3d5-btn')) {
-                        selectedOption = 'AH 1 -3.5';
-                        selectedOdds = match.odds.ah1_m3d5;
-                    } else if (button.classList.contains('ah2_m3d5-btn')) {
-                        selectedOption = 'AH 2 -3.5';
-                        selectedOdds = match.odds.ah2_m3d5;
-                    } else if (button.classList.contains('ah1_m3d25-btn')) {
-                        selectedOption = 'AH 1 -3.25';
-                        selectedOdds = match.odds.ah1_m3d25;
-                    } else if (button.classList.contains('ah2_m3d25-btn')) {
-                        selectedOption = 'AH 2 -3.25';
-                        selectedOdds = match.odds.ah2_m3d25;
-                    } else if (button.classList.contains('ah1_m3-btn')) {
-                        selectedOption = 'AH 1 -3.0';
-                        selectedOdds = match.odds.ah1_m3;
-                    } else if (button.classList.contains('ah2_m3-btn')) {
-                        selectedOption = 'AH 2 -3.0';
-                        selectedOdds = match.odds.ah2_m3;
-                    } else if (button.classList.contains('ah1_m2d75-btn')) {
-                        selectedOption = 'AH 1 -2.75';
-                        selectedOdds = match.odds.ah1_m2d75;
-                    } else if (button.classList.contains('ah2_m2d75-btn')) {
-                        selectedOption = 'AH 2 -2.75';
-                        selectedOdds = match.odds.ah2_m2d75;
-                    } else if (button.classList.contains('ah1_m2d5-btn')) {
-                        selectedOption = 'AH 1 -2.5';
-                        selectedOdds = match.odds.ah1_m2d5;
-                    } else if (button.classList.contains('ah2_m2d5-btn')) {
-                        selectedOption = 'AH 2 -2.5';
-                        selectedOdds = match.odds.ah2_m2d5;
-                    } else if (button.classList.contains('ah1_m2d25-btn')) {
-                        selectedOption = 'AH 1 -2.25';
-                        selectedOdds = match.odds.ah1_m2d25;
-                    } else if (button.classList.contains('ah2_m2d25-btn')) {
-                        selectedOption = 'AH 2 -2.25';
-                        selectedOdds = match.odds.ah2_m2d25;
-                    } else if (button.classList.contains('ah1_m2-btn')) {
-                        selectedOption = 'AH 1 -2.0';
-                        selectedOdds = match.odds.ah1_m2;
-                    } else if (button.classList.contains('ah2_m2-btn')) {
-                        selectedOption = 'AH 2 -2.0';
-                        selectedOdds = match.odds.ah2_m2;
-                    } else if (button.classList.contains('ah1_m1d75-btn')) {
-                        selectedOption = 'AH 1 -1.75';
-                        selectedOdds = match.odds.ah1_m1d75;
-                    } else if (button.classList.contains('ah2_m1d75-btn')) {
-                        selectedOption = 'AH 2 -1.75';
-                        selectedOdds = match.odds.ah2_m1d75;
-                    } else if (button.classList.contains('ah1_m1d5-btn')) {
-                        selectedOption = 'AH 1 -1.5';
-                        selectedOdds = match.odds.ah1_m1d5;
-                    } else if (button.classList.contains('ah2_m1d5-btn')) {
-                        selectedOption = 'AH 2 -1.5';
-                        selectedOdds = match.odds.ah2_m1d5;
-                    } else if (button.classList.contains('ah1_m1d25-btn')) {
-                        selectedOption = 'AH 1 -1.25';
-                        selectedOdds = match.odds.ah1_m1d25;
-                    } else if (button.classList.contains('ah2_m1d25-btn')) {
-                        selectedOption = 'AH 2 -1.25';
-                        selectedOdds = match.odds.ah2_m1d25;
-                    } else if (button.classList.contains('ah1_m1-btn')) {
-                        selectedOption = 'AH 1 -1.0';
-                        selectedOdds = match.odds.ah1_m1;
-                    } else if (button.classList.contains('ah2_m1-btn')) {
-                        selectedOption = 'AH 2 -1.0';
-                        selectedOdds = match.odds.ah2_m1;
-                    } else if (button.classList.contains('ah1_m0d75-btn')) {
-                        selectedOption = 'AH 1 -0.75';
-                        selectedOdds = match.odds.ah1_m0d75;
-                    } else if (button.classList.contains('ah2_m0d75-btn')) {
-                        selectedOption = 'AH 2 -0.75';
-                        selectedOdds = match.odds.ah2_m0d75;
-                    } else if (button.classList.contains('ah1_m0d5-btn')) {
-                        selectedOption = 'AH 1 -0.5';
-                        selectedOdds = match.odds.ah1_m0d5;
-                    } else if (button.classList.contains('ah2_m0d5-btn')) {
-                        selectedOption = 'AH 2 -0.5';
-                        selectedOdds = match.odds.ah2_m0d5;
-                    } else if (button.classList.contains('ah1_m0d25-btn')) {
-                        selectedOption = 'AH 1 -0.25';
-                        selectedOdds = match.odds.ah1_m0d25;
-                    } else if (button.classList.contains('ah2_m0d25-btn')) {
-                        selectedOption = 'AH 2 -0.25';
-                        selectedOdds = match.odds.ah2_m0d25;
-                    } else if (button.classList.contains('ah1_m0-btn')) {
-                        selectedOption = 'AH 1 0.0';
-                        selectedOdds = match.odds.ah1_m0;
-                    } else if (button.classList.contains('ah2_m0-btn')) {
-                        selectedOption = 'AH 2 0.0';
-                        selectedOdds = match.odds.ah2_m0;
-                    } else if (button.classList.contains('ah1_p1d75-btn')) {
-                        selectedOption = 'AH 1 0.25';
-                        selectedOdds = match.odds.ah1_p1d75;
-                    } else if (button.classList.contains('ah2_p1d75-btn')) {
-                        selectedOption = 'AH 2 0.25';
-                        selectedOdds = match.odds.ah2_p1d75;
-                    } else if (button.classList.contains('ah1_p1d5-btn')) {
-                        selectedOption = 'AH 1 0.5';
-                        selectedOdds = match.odds.ah1_p1d5;
-                    } else if (button.classList.contains('ah2_p1d5-btn')) {
-                        selectedOption = 'AH 2 0.5';
-                        selectedOdds = match.odds.ah2_p1d5;
-                    } else if (button.classList.contains('ah1_p1d25-btn')) {
-                        selectedOption = 'AH 1 0.75';
-                        selectedOdds = match.odds.ah1_p1d25;
-                    } else if (button.classList.contains('ah2_p1d25-btn')) {
-                        selectedOption = 'AH 2 0.75';
-                        selectedOdds = match.odds.ah2_p1d25;
-                    } else if (button.classList.contains('ah1_p1-btn')) {
-                        selectedOption = 'AH 1 1.0';
-                        selectedOdds = match.odds.ah1_p1;
-                    } else if (button.classList.contains('ah2_p1-btn')) {
-                        selectedOption = 'AH 2 1.0';
-                        selectedOdds = match.odds.ah2_p1;
-                    } else if (button.classList.contains('ah1_p2d75-btn')) {
-                        selectedOption = 'AH 1 1.75';
-                        selectedOdds = match.odds.ah1_p2d75;
-                    } else if (button.classList.contains('ah2_p2d75-btn')) {
-                        selectedOption = 'AH 2 1.75';
-                        selectedOdds = match.odds.ah2_p2d75;
-                    } else if (button.classList.contains('ah1_p2d5-btn')) {
-                        selectedOption = 'AH 1 2.0';
-                        selectedOdds = match.odds.ah1_p2d5;
-                    } else if (button.classList.contains('ah2_p2d5-btn')) {
-                        selectedOption = 'AH 2 2.0';
-                        selectedOdds = match.odds.ah2_p2d5;
-                    } else if (button.classList.contains('ah1_p2d25-btn')) {
-                        selectedOption = 'AH 1 2.25';
-                        selectedOdds = match.odds.ah1_p2d25;
-                    } else if (button.classList.contains('ah2_p2d25-btn')) {
-                        selectedOption = 'AH 2 2.25';
-                        selectedOdds = match.odds.ah2_p2d25;
-                    } else if (button.classList.contains('ah1_p2-btn')) {
-                        selectedOption = 'AH 1 2.5';
-                        selectedOdds = match.odds.ah1_p2;
-                    } else if (button.classList.contains('ah2_p2-btn')) {
-                        selectedOption = 'AH 2 2.5';
-                        selectedOdds = match.odds.ah2_p2;
-                    } else if (button.classList.contains('ah1_p3d75-btn')) {
-                        selectedOption = 'AH 1 3.75';
-                        selectedOdds = match.odds.ah1_p3d75;
-                    } else if (button.classList.contains('ah2_p3d75-btn')) {
-                        selectedOption = 'AH 2 3.75';
-                        selectedOdds = match.odds.ah2_p3d75;
-                    } else if (button.classList.contains('ah1_p3d5-btn')) {
-                        selectedOption = 'AH 1 3.5';
-                        selectedOdds = match.odds.ah1_p3d5;
-                    } else if (button.classList.contains('ah2_p3d5-btn')) {
-                        selectedOption = 'AH 2 3.5';
-                        selectedOdds = match.odds.ah2_p3d5;
-                    } else if (button.classList.contains('ah1_p3d25-btn')) {
-                        selectedOption = 'AH 1 3.25';
-                        selectedOdds = match.odds.ah1_p3d25;
-                    } else if (button.classList.contains('ah2_p3d25-btn')) {
-                        selectedOption = 'AH 2 3.25';
-                        selectedOdds = match.odds.ah2_p3d25;
-                    } else if (button.classList.contains('ah1_p3-btn')) {
-                        selectedOption = 'AH 1 3.0';
-                        selectedOdds = match.odds.ah1_p3;
-                    } else if (button.classList.contains('ah2_p3-btn')) {
-                        selectedOption = 'AH 2 3.0';
-                        selectedOdds = match.odds.ah2_p3;
-                    }
-
-                    // Update the return display
-                    updateReturnDisplay();
-                });
-            });
-        }
-
-
-
-        // Function to attach event listeners for OV
-        function attachOVListeners(matchDiv) {
-            matchDiv.querySelectorAll('.ov-1d5-btn, .ov-2d5-btn, .ov-3d5-btn, .un-1d5-btn, .un-2d5-btn, .un-3d5-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    matchDiv.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-
-                    if (button.classList.contains('ov-1d5-btn')) {
-                        selectedOption = 'Over 1d5';
-                        selectedOdds = match.odds.ov_1d5;
-
-                    } else if (button.classList.contains('ov-2d5-btn')) {
-                        selectedOption = 'Over 2.5';
-                        selectedOdds = match.odds.ov_2d5;
-
-                    } else if (button.classList.contains('ov-3d5-btn')) {
-                        selectedOption = 'Over 3.5';
-                        selectedOdds = match.odds.ov_3d5;
-
-                    } else if (button.classList.contains('un-1d5-btn')) {
-                        selectedOption = 'Under 1.5';
-                        selectedOdds = match.odds.un_1d5;
-
-                    } else if (button.classList.contains('un-2d5-btn')) {
-                        selectedOption = 'Under 2.5';
-                        selectedOdds = match.odds.un_2d5;
-
-                    } else if (button.classList.contains('un-3d5-btn')) {
-                        selectedOption = 'Under 3.5';
-                        selectedOdds = match.odds.un_3d5;
-                    }
-
-                    updateReturnDisplay();
-                });
-            });
-        }
-
-
-
 
             function updateReturnDisplay() {
                 const betAmount = parseFloat(betInput.value) || 0;
@@ -1264,11 +1044,12 @@ function renderMatches(matches) {
                     returnDisplay.textContent = `Expected Return: $${expectedReturn}`;
                     membershipReturnDisplay.textContent = `Double-Club Membership Return: $${membershipReturn}`;
 
-                    membershipReturnDisplay.style.display = 'block';
+
+                    membershipReturnDisplay.style.display = 'none';
                     buyButton.style.display = 'inline-block';
                 } else {
                     returnDisplay.textContent = 'Expected Return: $0';
-                    membershipReturnDisplay.style.display = 'block';
+                    membershipReturnDisplay.style.display = 'none';
                     buyButton.style.display = 'none';
                 }
             }
